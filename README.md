@@ -14,10 +14,10 @@
 > How do different narrative types in YouTube trending videos affect consumer attention to plant-based food products? 
 #Note: Consumer attention is measured using views, likes, and comments.
 > 
--H1 Health-related narratives are positively associated with consumer attention.
--H2 Taste-related narratives are positively associated with consumer attention.
--H3 Skeptical or negative narratives are associated with higher levels of consumer attention.
--H4 Environmental narratives are positively associated with consumer attention.
+- H1 Health-related narratives are positively associated with consumer attention.
+- H2 Taste-related narratives are positively associated with consumer attention.
+- H3 Skeptical or negative narratives are associated with higher levels of consumer attention.
+- H4 Environmental narratives are positively associated with consumer attention.
 
 
 ## 📁 Data Sources
