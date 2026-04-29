@@ -1,40 +1,51 @@
 # Video-Analysis--DataScience-Group
 
-# AI Agents & Video Platform Behaviors (YouTube case study)
+# How Do Narratives Shape Consumer Attention? Evidence from YouTube Trending Videos on Plant-Based Foods
 
 ## 👥 Team Members
 
-- Name (@github_handle) - Role/Responsibility
-- Name (@github_handle) - Role/Responsibility
-- HUANG Shuo (@huangshuojason) - Role/Responsibility
+- CONG Tianxiang (@congtx) - Lead Python development; YouTube API integration; data pipeline design; advanced scripting; code quality review.
+- Euimin Keum (@github_handle) - Run and modify basic scripts; support data cleaning, manual validation, coding checks, and documentation of preprocessing steps.
+- HUANG Shuo (@huangshuojason) - Research design; econometric modeling; variable definition; regression analysis; interpretation of results; Python/R notebook implementation.
 
 
 ## ❓ Research Question & 🎯 Hypothesis
 
-> State your central research question clearly and concisely
+> How do different narrative types in YouTube trending videos affect consumer attention to plant-based food products? 
+#Note: Consumer attention is measured using views, likes, and comments.
+> 
+-H1 Health-related narratives are positively associated with consumer attention.
+-H2 Taste-related narratives are positively associated with consumer attention.
+-H3 Skeptical or negative narratives are associated with higher levels of consumer attention.
+-H4 Environmental narratives are positively associated with consumer attention.
 
-- Hypothesis 1
-- Hypothesis 2
-- Hypothesis 3
 
 ## 📁 Data Sources
 
 | Source | Description | URL |
 |--------|-------------|-----|
-| World Bank | Brief description | [World Bank Open Data](https://data.worldbank.org/) |
-| IMF | Brief description | [IMF Data Portal](https://www.imf.org/en/Data) |
+| YouTube Data API | Primary data source. Used to collect video metadata for plant-based food-related YouTube videos, including title, description, publication date, channel information, views, likes, and comments. | https://developers.google.com/youtube/v3 |
+| Keyword Dictionary | A project-created dictionary for plant-based food keywords and narrative classification keywords |Stored in docs/data_details.md or src/config/ |
 
 ### Data Sources Details
 
-#### D.1 World Bank  
-**Variables:** e.g., NY.GDP.MKTP.CD, SE.PRM.CMPT.ZS
+D.1 YouTube Data API
+Item	Planned Details
+Unit of analysis	Individual YouTube video.
+Market focus	Plant-based food products, including plant-based meat, vegan meat, meat alternatives, dairy alternatives, and sustainable food products.
+Possible search keywords	plant-based meat; vegan meat; meat alternative; Beyond Meat; Impossible Foods; plant-based burger; vegan burger; sustainable food; alternative protein.
+Geographic scope	To be decided based on feasibility. A global English-language sample is the simplest option. If needed, regionCode can be set in the API.
+Granularity	Video-level cross-sectional data; if collected over several weeks, video-week or weekly aggregated analysis may also be possible.
+Core variables	video_id, title, description, tags, published_at, channel_id, channel_title, duration, view_count, like_count, comment_count.
+Derived variables	Narrative dummies: health, taste, environmental, skeptical/negative; log views; log likes; log comments; engagement rate; title length; upload timing.
 
-**Granularity:** e.g., Annual data by Country
+D.2 Narrative Classification Data
+Narrative Type	Definition	Example Keywords / Clues
+Health-related	Videos that frame plant-based foods through health, nutrition, personal well-being, diet, or bodily benefits/risks.	healthy, nutrition, protein, diet, wellness, heart health, ultra-processed, ingredients.
+Taste-related	Videos that frame plant-based foods through flavor, texture, sensory experience, cooking, or similarity to meat.	taste test, delicious, flavor, texture, juicy, like meat, recipe, cooking.
+Environmental	Videos that frame plant-based foods through sustainability, climate, emissions, animals, ethics, or environmental impact.	sustainable, climate, carbon, emissions, planet, environment, animal welfare.
+Skeptical / Negative	Videos that frame plant-based foods critically or controversially.	fake meat, artificial, unhealthy, expensive, scam, controversy, backlash.
 
-#### D.2 IMF  
-**Variables:** e.g., Consumer Price Index, Interest Rates
-
-**Granularity:** e.g., Quarterly data by Region
 
 ## 📂 Folder Structure
 
@@ -97,4 +108,7 @@ project/
 | HUANG Shuo| Description of contributions |
 
 ## 🔗 References
-- Link to methodology references
+- YouTube Data API Documentation: https://developers.google.com/youtube/v3
+-Pandas Documentation: https://pandas.pydata.org/docs/
+-Statsmodels Documentation: https://www.statsmodels.org/
+-Suggested methodology topics: social media analytics, narrative/framing analysis, sentiment analysis, econometric modeling of online engagement, and consumer attention proxies.
