@@ -6,7 +6,7 @@
 
 - CONG Tianxiang (@congtx) - Lead Python development; YouTube API integration; data pipeline design; advanced scripting; code quality review.
 - Euimin Keum (@github_handle) - Run and modify basic scripts; support data cleaning, manual validation, coding checks, and documentation of preprocessing steps.
-- HUANG Shuo (@huangshuojason) - Research design; econometric modeling; variable definition; regression analysis; interpretation of results; Python/R notebook implementation.
+- HUANG Shuo (@huangshuojason) - Econometric modeling; variable definition; regression analysis; interpretation of results; Python/R notebook implementation.
 
 
 ## ❓ Research Question & 🎯 Hypothesis
@@ -103,12 +103,12 @@ project/
 
 | Member | Tasks |
 |--------|-------|
-| CONG Tianxiang| Description of contributions |
-| Euimin Keum   | Description of contributions |
-| HUANG Shuo| Description of contributions |
+| CONG Tianxiang|  Lead Python development; YouTube API integration; data pipeline design; advanced scripting; code quality review. |
+| Euimin Keum   | Run and modify basic scripts; support data cleaning, manual validation, coding checks, and documentation of preprocessing  |
+| HUANG Shuo| Econometric modeling; variable definition; regression analysis; interpretation of results; Python/R notebook implementation.s |
 
 ## 🔗 References
 - YouTube Data API Documentation: https://developers.google.com/youtube/v3
--Pandas Documentation: https://pandas.pydata.org/docs/
--Statsmodels Documentation: https://www.statsmodels.org/
--Suggested methodology topics: social media analytics, narrative/framing analysis, sentiment analysis, econometric modeling of online engagement, and consumer attention proxies.
+- Pandas Documentation: https://pandas.pydata.org/docs/
+- Statsmodels Documentation: https://www.statsmodels.org/
+- Suggested methodology topics: social media analytics, narrative/framing analysis, sentiment analysis, econometric modeling of online engagement, and consumer attention proxies.
