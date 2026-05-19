@@ -1,6 +1,6 @@
 # Video-Analysis--DataScience-Group
 
-# How Do Narratives Shape Consumer Attention? Evidence from YouTube Trending Videos on Plant-Based Foods
+# Examining the Impact of YouTube Narrative Information on Plant-Based Food Sales
 
 ## 👥 Team Members
 
