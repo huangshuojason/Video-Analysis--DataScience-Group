@@ -5,9 +5,9 @@
 ## 👥 Team Members
 Each member’s contribution will be added after their tasks are completed.
 - CONG Tianxiang (@congtx) - Research design; Theory development; YouTube API data extraction; advanced code review
-- Euimin Keum (@github_handle) - Research design;
+- Euimin Keum (@euimin2k-crypto) - Research design;
 - HUANG Shuo (@huangshuojason) - Research design; YouTube API data extraction; Panel data acquisition
-- Okamoto Shunichi (@okamoto-junichi22-debug)- 
+- Okamoto Shunichi (@okamoto-junichi22-debug)- This is a new member who joined on May 13.
 
 ## Updated on May 19th
 
@@ -101,20 +101,19 @@ project/
 
 | Milestone | Deadline | Deliverable |
 |-----------|----------|-------------|
-| M1        | Date     | Output      |
+| M1        | 5.20     | Research design; YouTube API data extraction; Panel data acquisition|
 | M2        | Date     | Output      |
 | M3        | Date     | Output      |
 
 ## 🤝 Contributions
-
+Each member’s contribution will be added after their tasks are completed.
 | Member | Tasks |
 |--------|-------|
-| CONG Tianxiang|  Lead Python development; YouTube API integration; data pipeline design; advanced scripting; code quality review. |
-| Euimin Keum   | Run and modify basic scripts; support data cleaning, manual validation, coding checks, and documentation of preprocessing  |
-| HUANG Shuo| Econometric modeling; variable definition; regression analysis; interpretation of results; Python/R notebook implementation.s |
+| CONG Tianxiang|  Research design; Theory development; YouTube API data extraction; advanced code review|
+| Euimin Keum   |  Research design |
+| HUANG Shuo| Research design; YouTube API data extraction; Panel data acquisition|
+
 
 ## 🔗 References
 - YouTube Data API Documentation: https://developers.google.com/youtube/v3
-- Pandas Documentation: https://pandas.pydata.org/docs/
-- Statsmodels Documentation: https://www.statsmodels.org/
-- Suggested methodology topics: social media analytics, narrative/framing analysis, sentiment analysis, econometric modeling of online engagement, and consumer attention proxies.
+- Panel data: European plant based foods sales data: https://zenodo.org/records/641184
