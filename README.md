@@ -31,7 +31,8 @@ How many countries, descriptive stats of key variables (count, mean, median, std
 | Source | Description | URL |
 |--------|-------------|-----|
 | YouTube Data API | Primary data source. Used to collect video metadata for plant-based food-related YouTube videos, including title, description, publication date, channel information, views, likes, and comments. | https://developers.google.com/youtube/v3 |
-| Keyword Dictionary | A project-created dictionary for plant-based food keywords and narrative classification keywords |Stored in docs/data_details.md or src/config/ |
+| Keyword Dictionary (TBD) | A project-created dictionary for plant-based food keywords and narrative classification keywords |Stored in docs/data_details.md or src/config/ |
+| Panel data: European plant based foods sales data | European plant-based foods sales data 2017-2020 (Nielsen Market Track) |[Stored in docs/data_details.md or src/config/](https://zenodo.org/records/6411841) |
 
 ### Data Sources Details
 
@@ -51,6 +52,11 @@ Health-related	Videos that frame plant-based foods through health, nutrition, pe
 Taste-related	Videos that frame plant-based foods through flavor, texture, sensory experience, cooking, or similarity to meat.	taste test, delicious, flavor, texture, juicy, like meat, recipe, cooking.
 Environmental	Videos that frame plant-based foods through sustainability, climate, emissions, animals, ethics, or environmental impact.	sustainable, climate, carbon, emissions, planet, environment, animal welfare.
 Skeptical / Negative	Videos that frame plant-based foods critically or controversially.	fake meat, artificial, unhealthy, expensive, scam, controversy, backlash.
+
+D.3 European plant-based foods sales data 2017-2020 (Nielsen Market Track)
+The dataset consists of Excel (.xlsx) files with data on sales of plant-based food products between 2017 and 2020 in a number of European countries (i.e. Austria, Belgium, Denmark, France, Germany, Italy, the Netherlands, Poland, Romania, Spain and the UK.)
+The data are clearly labelled within each file. The key variables (common across datasets) are Value in Euros, Volume in KG/LIT and Volume in Selling Units for a number of meat and dairy substitute food products specific to the retail region.
+The data were originally collected by Nielsen Market Track.
 
 
 ## 📂 Folder Structure
@@ -116,4 +122,4 @@ Each member’s contribution will be added after their tasks are completed.
 
 ## 🔗 References
 - YouTube Data API Documentation: https://developers.google.com/youtube/v3
-- Panel data: European plant based foods sales data: https://zenodo.org/records/641184
+- Panel data: European plant based foods sales data: [https://zenodo.org/records/641184](https://zenodo.org/records/6411841)
