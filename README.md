@@ -9,7 +9,7 @@
 - HUANG Shuo (@huangshuojason) - Econometric modeling; variable definition; regression analysis; interpretation of results; Python/R notebook implementation.
 
 
-##[Updated on May 19th].
+## Updated on May 19th
 
 Milestone 1: Due May 20th (Week 5)
 Choose a dataset relevant to the course content.
