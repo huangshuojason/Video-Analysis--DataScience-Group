@@ -3,11 +3,11 @@
 # Examining the Impact of YouTube Narrative Information on Plant-Based Food Sales
 
 ## 👥 Team Members
-
-- CONG Tianxiang (@congtx) - Lead Python development; YouTube API integration; data pipeline design; advanced scripting; code quality review.
-- Euimin Keum (@github_handle) - Run and modify basic scripts; support data cleaning, manual validation, coding checks, and documentation of preprocessing steps.
-- HUANG Shuo (@huangshuojason) - Econometric modeling; variable definition; regression analysis; interpretation of results; Python/R notebook implementation.
-- Okamoto Shunichi (@)
+Each member’s contribution will be added after their tasks are completed.
+- CONG Tianxiang (@congtx) - Research design; Theory development; YouTube API data extraction; advanced code review
+- Euimin Keum (@github_handle) - Research design;
+- HUANG Shuo (@huangshuojason) - Research design; YouTube API data extraction; Panel data acquisition
+- Okamoto Shunichi (@okamoto-junichi22-debug)- 
 
 ## Updated on May 19th
 
