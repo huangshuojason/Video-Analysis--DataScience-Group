@@ -16,8 +16,8 @@ https://zenodo.org/records/6411841
 
 Formulate a specific, testable research question.
 ❓ Research Question & 🎯 Hypothesis
->RQ: How does narrative information on the YouTube platform affect the sales of plant-based foods?
->Hypothesis: The volume of positive narratives about plant-based products on YouTube is positively associated with plant-based food sales.
+RQ: How does narrative information on the YouTube platform affect the sales of plant-based foods?
+Hypothesis: The volume of positive narratives about plant-based products on YouTube is positively associated with plant-based food sales.
 Baseline: Using Python import data and show descriptive statistics.
 How many countries, descriptive stats of key variables (count, mean, median, stdev, min, max)
 
