@@ -7,7 +7,7 @@
 - CONG Tianxiang (@congtx) - Lead Python development; YouTube API integration; data pipeline design; advanced scripting; code quality review.
 - Euimin Keum (@github_handle) - Run and modify basic scripts; support data cleaning, manual validation, coding checks, and documentation of preprocessing steps.
 - HUANG Shuo (@huangshuojason) - Econometric modeling; variable definition; regression analysis; interpretation of results; Python/R notebook implementation.
-
+- Okamoto Shunichi (@)
 
 ## Updated on May 19th
 
