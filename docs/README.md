@@ -3,17 +3,17 @@
 # Examining the Impact of YouTube Narrative Information on Plant-Based Food Sales
 
 ## 👥 Team Members
-
-- CONG Tianxiang (@congtx) - Lead Python development; YouTube API integration; data pipeline design; advanced scripting; code quality review.
-- Euimin Keum (@github_handle) - Run and modify basic scripts; support data cleaning, manual validation, coding checks, and documentation of preprocessing steps.
-- HUANG Shuo (@huangshuojason) - Econometric modeling; variable definition; regression analysis; interpretation of results; Python/R notebook implementation.
-
+Each member’s contribution will be added after their tasks are completed.
+- CONG Tianxiang (@congtx) - Research design; Theory development; YouTube API data extraction; advanced code review
+- Euimin Keum (@euimin2k-crypto) - Research design;
+- HUANG Shuo (@huangshuojason) - Research design; YouTube API data extraction; Panel data acquisition
+- Okamoto Shunichi (@okamoto-junichi22-debug)- This is a new member who joined on May 13.
 
 ## Updated on May 19th
 
 Milestone 1: Due May 20th (Week 5)
 Choose a dataset relevant to the course content.
-https://zenodo.org/records/6411841
+https://developers.google.com/youtube/v3; https://zenodo.org/records/6411841
 
 Formulate a specific, testable research question.
 - ❓ Research Question & 🎯 Hypothesis
@@ -31,7 +31,8 @@ How many countries, descriptive stats of key variables (count, mean, median, std
 | Source | Description | URL |
 |--------|-------------|-----|
 | YouTube Data API | Primary data source. Used to collect video metadata for plant-based food-related YouTube videos, including title, description, publication date, channel information, views, likes, and comments. | https://developers.google.com/youtube/v3 |
-| Keyword Dictionary | A project-created dictionary for plant-based food keywords and narrative classification keywords |Stored in docs/data_details.md or src/config/ |
+| Keyword Dictionary (TBD) | A project-created dictionary for plant-based food keywords and narrative classification keywords |Stored in docs/data_details.md or src/config/ |
+| Panel data: European plant based foods sales data | European plant-based foods sales data 2017-2020 (Nielsen Market Track) |[Stored in docs/data_details.md or src/config/](https://zenodo.org/records/6411841) |
 
 ### Data Sources Details
 
@@ -51,6 +52,11 @@ Health-related	Videos that frame plant-based foods through health, nutrition, pe
 Taste-related	Videos that frame plant-based foods through flavor, texture, sensory experience, cooking, or similarity to meat.	taste test, delicious, flavor, texture, juicy, like meat, recipe, cooking.
 Environmental	Videos that frame plant-based foods through sustainability, climate, emissions, animals, ethics, or environmental impact.	sustainable, climate, carbon, emissions, planet, environment, animal welfare.
 Skeptical / Negative	Videos that frame plant-based foods critically or controversially.	fake meat, artificial, unhealthy, expensive, scam, controversy, backlash.
+
+D.3 European plant-based foods sales data 2017-2020 (Nielsen Market Track)
+The dataset consists of Excel (.xlsx) files with data on sales of plant-based food products between 2017 and 2020 in a number of European countries (i.e. Austria, Belgium, Denmark, France, Germany, Italy, the Netherlands, Poland, Romania, Spain and the UK.)
+The data are clearly labelled within each file. The key variables (common across datasets) are Value in Euros, Volume in KG/LIT and Volume in Selling Units for a number of meat and dairy substitute food products specific to the retail region.
+The data were originally collected by Nielsen Market Track.
 
 
 ## 📂 Folder Structure
@@ -101,20 +107,19 @@ project/
 
 | Milestone | Deadline | Deliverable |
 |-----------|----------|-------------|
-| M1        | Date     | Output      |
+| M1        | 5.20     | Research design; YouTube API data extraction; Panel data acquisition|
 | M2        | Date     | Output      |
 | M3        | Date     | Output      |
 
 ## 🤝 Contributions
-
+Each member’s contribution will be added after their tasks are completed.
 | Member | Tasks |
 |--------|-------|
-| CONG Tianxiang|  Lead Python development; YouTube API integration; data pipeline design; advanced scripting; code quality review. |
-| Euimin Keum   | Run and modify basic scripts; support data cleaning, manual validation, coding checks, and documentation of preprocessing  |
-| HUANG Shuo| Econometric modeling; variable definition; regression analysis; interpretation of results; Python/R notebook implementation.s |
+| CONG Tianxiang|  Research design; Theory development; YouTube API data extraction; advanced code review|
+| Euimin Keum   |  Research design |
+| HUANG Shuo| Research design; YouTube API data extraction; Panel data acquisition|
+
 
 ## 🔗 References
 - YouTube Data API Documentation: https://developers.google.com/youtube/v3
-- Pandas Documentation: https://pandas.pydata.org/docs/
-- Statsmodels Documentation: https://www.statsmodels.org/
-- Suggested methodology topics: social media analytics, narrative/framing analysis, sentiment analysis, econometric modeling of online engagement, and consumer attention proxies.
+- Panel data: European plant based foods sales data: [https://zenodo.org/records/641184](https://zenodo.org/records/6411841)
