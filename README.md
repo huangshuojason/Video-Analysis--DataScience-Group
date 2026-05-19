@@ -9,15 +9,19 @@
 - HUANG Shuo (@huangshuojason) - Econometric modeling; variable definition; regression analysis; interpretation of results; Python/R notebook implementation.
 
 
-## ❓ Research Question & 🎯 Hypothesis
+[Updated on May 19th]
+Milestone 1: Due May 20th (Week 5)
+Choose a dataset relevant to the course content.
+https://zenodo.org/records/6411841
 
-> How do different narrative types in YouTube trending videos affect consumer attention to plant-based food products? 
-#Note: Consumer attention is measured using views, likes, and comments.
-> 
-- H1 Health-related narratives are positively associated with consumer attention.
-- H2 Taste-related narratives are positively associated with consumer attention.
-- H3 Skeptical or negative narratives are associated with higher levels of consumer attention.
-- H4 Environmental narratives are positively associated with consumer attention.
+Formulate a specific, testable research question.
+❓ Research Question & 🎯 Hypothesis
+>RQ: How does narrative information on the YouTube platform affect the sales of plant-based foods?
+>Hypothesis: The volume of positive narratives about plant-based products on YouTube is positively associated with plant-based food sales.
+Baseline: Using Python import data and show descriptive statistics.
+How many countries, descriptive stats of key variables (count, mean, median, stdev, min, max)
+
+
 
 
 ## 📁 Data Sources
