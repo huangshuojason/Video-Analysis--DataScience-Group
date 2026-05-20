@@ -116,7 +116,7 @@ Each member’s contribution will be added after their tasks are completed.
 |--------|-------|
 | CONG Tianxiang|  Research design; Theory development; YouTube API data extraction; advanced code review|
 | HUANG Shuo| Research design; YouTube API data extraction; Panel data acquisition|
-| Okamoto Shunichi| 
+| Okamoto Junichi | 
 
 
 ## 🔗 References
