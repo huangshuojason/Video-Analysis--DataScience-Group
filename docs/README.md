@@ -5,9 +5,8 @@
 ## 👥 Team Members
 Each member’s contribution will be added after their tasks are completed.
 - CONG Tianxiang (@congtx) - Research design; Theory development; YouTube API data extraction; advanced code review
-- Euimin Keum (@euimin2k-crypto) - Research design;
 - HUANG Shuo (@huangshuojason) - Research design; YouTube API data extraction; Panel data acquisition
-- Okamoto Shunichi (@okamoto-junichi22-debug)- This is a new member who joined on May 13.
+- Okamoto Junichi (@okamoto-junichi22-debug)- This is a new member who joined on May 13.
 
 ## Updated on May 19th
 
@@ -116,8 +115,8 @@ Each member’s contribution will be added after their tasks are completed.
 | Member | Tasks |
 |--------|-------|
 | CONG Tianxiang|  Research design; Theory development; YouTube API data extraction; advanced code review|
-| Euimin Keum   |  Research design |
 | HUANG Shuo| Research design; YouTube API data extraction; Panel data acquisition|
+| Okamoto Junichi | 
 
 
 ## 🔗 References
