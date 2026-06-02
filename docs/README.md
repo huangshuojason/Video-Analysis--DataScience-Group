@@ -5,21 +5,15 @@
 ## 👥 Team Members
 Each member’s contribution will be added after their tasks are completed.
 - CONG Tianxiang (@congtx) - Research design; Theory development; YouTube API data extraction; advanced code review
-- HUANG Shuo (@huangshuojason) - Research design; YouTube API data extraction; Panel data acquisition
-- Okamoto Junichi (@okamoto-junichi22-debug)- This is a new member who joined on May 13.
+- HUANG Shuo (@huangshuojason) - Research design; YouTube API data extraction; Panel data acquisition; visualization
+- Okamoto Junichi (@okamoto-junichi22-debug)- Research design
 
-## Updated on May 19th
-
-Milestone 1: Due May 20th (Week 5)
-Choose a dataset relevant to the course content.
-https://developers.google.com/youtube/v3; https://zenodo.org/records/6411841
+## Updated on June 2nd
 
 Formulate a specific, testable research question.
 - ❓ Research Question & 🎯 Hypothesis
 - RQ: How does narrative information on the YouTube platform affect the sales of plant-based foods?
 - Hypothesis: The volume of positive narratives about plant-based products on YouTube is positively associated with plant-based food sales.
-Baseline: Using Python import data and show descriptive statistics.
-How many countries, descriptive stats of key variables (count, mean, median, stdev, min, max)
 
 
 -------------------------------------------
@@ -107,16 +101,16 @@ project/
 | Milestone | Deadline | Deliverable |
 |-----------|----------|-------------|
 | M1        | 5.20     | Research design; YouTube API data extraction; Panel data acquisition|
-| M2        | Date     | Output      |
+| M2        | 6.3     | Output      |
 | M3        | Date     | Output      |
 
 ## 🤝 Contributions
 Each member’s contribution will be added after their tasks are completed.
 | Member | Tasks |
 |--------|-------|
-| CONG Tianxiang|  Research design; Theory development; YouTube API data extraction; advanced code review|
-| HUANG Shuo| Research design; YouTube API data extraction; Panel data acquisition|
-| Okamoto Junichi | 
+| CONG Tianxiang|  Research design; Theory development; YouTube API data extraction; advanced code review|  
+| HUANG Shuo| Research design; YouTube API data extraction; Panel data acquisition|  Visualization
+| Okamoto Junichi | Research design
 
 
 ## 🔗 References
