@@ -1,0 +1,12 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run YouTube UK Plant-Based Extractor",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/run_in_visual_studio.py",
+      "console": "integratedTerminal"
+    }
+  ]
+}
