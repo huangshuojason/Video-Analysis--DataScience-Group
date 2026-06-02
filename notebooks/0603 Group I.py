@@ -84,6 +84,9 @@ country_descriptive
 
 
 # %% Cell 7: code
+country_mean = df.groupby('Country')[['Value EUR', 'Volume kg/l']].mean()
+
+plt.close('all')
 fig, axes = plt.subplots(1, 2, figsize=(16, 6))
 
 country_mean['Value EUR'].sort_values(ascending=False).plot(
@@ -1077,6 +1080,23 @@ plt.show()
 
 
 # %% Cell 49: code
+sales_vars = ["Value EUR", "Volume kg/l"]
+
+narrative_vars = [
+    "video_count",
+    "health_per_video",
+    "sustainability_per_video",
+    "environment_per_video",
+    "hedonism_per_video",
+    "animal_welfare_per_video",
+    "total_narrative_per_video"
+]
+
+sales_narrative_corr = merged_df[sales_vars + narrative_vars].corr().loc[
+    sales_vars,
+    narrative_vars
+]
+
 plt.figure(figsize=(12, 4))
 
 ax = sns.heatmap(
