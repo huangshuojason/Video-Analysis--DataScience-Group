@@ -116,8 +116,8 @@ project/
 
 | Milestone | Deadline | Deliverable |
 |-----------|----------|-------------|
-| M1        | 5.20     | Research design; YouTube API data extraction; Panel data acquisition|
-| M2        | 6.3     | Output      |
+| M1 | 5.20 | Research design; sales data acquisition; descriptive analysis of sales data |
+| M2 | 6.3 | YouTube API data collection; narrative keyword analysis; visualizations; correlation and regression analysis |
 | M3        | Date     | Output      |
 
 ## 🤝 Contributions
