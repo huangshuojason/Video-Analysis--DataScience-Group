@@ -1,6 +1,6 @@
 # Video-Analysis--DataScience-Group
 
-# Examining the Impact of YouTube Narrative Information on Plant-Based Food Sales
+# Plant-Based Food Sales and YouTube Narratives in Europe: An Exploratory Analysis from 2018 to 2020
 
 ## 👥 Team Members
 Each member’s contribution will be added after their tasks are completed.
