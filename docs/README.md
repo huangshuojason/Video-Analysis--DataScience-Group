@@ -11,9 +11,11 @@ Each member’s contribution will be added after their tasks are completed.
 ## Updated on June 2nd
 
 Formulate a specific, testable research question.
-- ❓ Research Question & 🎯 Hypothesis
-- RQ: How does narrative information on the YouTube platform affect the sales of plant-based foods?
-- Hypothesis: The volume of positive narratives about plant-based products on YouTube is positively associated with plant-based food sales.
+- ❓ Research Question
+- Main RQ: How are plant-based food sales patterns related to YouTube narratives across European countries from 2018 to 2020?
+- Sub-RQ1: How do plant-based food sales differ across countries, years, and product groups?
+- Sub-RQ2: What narratives are most commonly used in YouTube videos about plant-based food across countries and over time?
+- Sub-RQ3: To what extent are YouTube narrative variables associated with plant-based food sales value and sales volume?
 
 
 -------------------------------------------
@@ -23,33 +25,47 @@ Formulate a specific, testable research question.
 
 | Source | Description | URL |
 |--------|-------------|-----|
-| YouTube Data API | Primary data source. Used to collect video metadata for plant-based food-related YouTube videos, including title, description, publication date, channel information, views, likes, and comments. | https://developers.google.com/youtube/v3 |
-| Keyword Dictionary (TBD) | A project-created dictionary for plant-based food keywords and narrative classification keywords |Stored in docs/data_details.md or src/config/ |
-| Panel data: European plant based foods sales data | European plant-based foods sales data 2017-2020 (Nielsen Market Track) |[Stored in docs/data_details.md or src/config/](https://zenodo.org/records/6411841) |
+| YouTube Data API | Used to collect YouTube video metadata related to plant-based food narratives, including video title, description, upload date, channel information, views, likes, and comments. | [https://developers.google.com/youtube/v3](https://developers.google.com/youtube/v3) |
+| Project-created Narrative Keyword Dictionary |  A keyword-based dictionary created for this project to classify YouTube video narratives into health, sustainability, environment, hedonism, and animal welfare themes. | Created in the analysis code|
+| European Plant-Based Foods Sales Data  | ESales data for plant-based food products across European countries. Key variables include country, year, product group, Value EUR, and Volume kg/l. |[[Stored in docs/data_details.md or src/config/](https://zenodo.org/records/6411841) ](https://zenodo.org/records/6411841 )|
 
 ### Data Sources Details
 
-D.1 YouTube Data API
-Item	Planned Details
-Unit of analysis	Individual YouTube video.
-Market focus	Plant-based food products, including plant-based meat, vegan meat, meat alternatives, dairy alternatives, and sustainable food products.
-Possible search keywords	plant-based meat; vegan meat; meat alternative; Beyond Meat; Impossible Foods; plant-based burger; vegan burger; sustainable food; alternative protein.
-Geographic scope	To be decided based on feasibility. A global English-language sample is the simplest option. If needed, regionCode can be set in the API.
-Granularity	Video-level cross-sectional data; if collected over several weeks, video-week or weekly aggregated analysis may also be possible.
-Core variables	video_id, title, description, tags, published_at, channel_id, channel_title, duration, view_count, like_count, comment_count.
-Derived variables	Narrative dummies: health, taste, environmental, skeptical/negative; log views; log likes; log comments; engagement rate; title length; upload timing.
+| Item | Details |
+|------|---------|
+| Unit of analysis | Individual YouTube video |
+| Market focus | Plant-based food products, including plant-based meat, vegan food, meat alternatives, dairy alternatives, and plant-based diets |
+| Geographic scope | Selected European countries, including Austria, Belgium, Denmark, France, Italy, Netherlands, Romania, Spain, and United Kingdom |
+| Time period | Videos published between 2018 and 2020 |
+| Search keywords | Search terms included plant-based food, plant-based meat, vegan food, vegan products, meat alternatives, plant-based diet, supermarket, sustainability, and country-specific terms |
+| Core variables | video_id, title, description, upload_date, country, channel, channel_id, view_count, like_count, comment_count |
+| Derived variables | Year, narrative keyword counts, narrative mentioned dummies, narrative intensity per video, and country-year narrative summaries |
 
-D.2 Narrative Classification Data
-Narrative Type	Definition	Example Keywords / Clues
-Health-related	Videos that frame plant-based foods through health, nutrition, personal well-being, diet, or bodily benefits/risks.	healthy, nutrition, protein, diet, wellness, heart health, ultra-processed, ingredients.
-Taste-related	Videos that frame plant-based foods through flavor, texture, sensory experience, cooking, or similarity to meat.	taste test, delicious, flavor, texture, juicy, like meat, recipe, cooking.
-Environmental	Videos that frame plant-based foods through sustainability, climate, emissions, animals, ethics, or environmental impact.	sustainable, climate, carbon, emissions, planet, environment, animal welfare.
-Skeptical / Negative	Videos that frame plant-based foods critically or controversially.	fake meat, artificial, unhealthy, expensive, scam, controversy, backlash.
+#### D.2 Narrative Classification Data
 
-D.3 European plant-based foods sales data 2017-2020 (Nielsen Market Track)
-The dataset consists of Excel (.xlsx) files with data on sales of plant-based food products between 2017 and 2020 in a number of European countries (i.e. Austria, Belgium, Denmark, France, Germany, Italy, the Netherlands, Poland, Romania, Spain and the UK.)
-The data are clearly labelled within each file. The key variables (common across datasets) are Value in Euros, Volume in KG/LIT and Volume in Selling Units for a number of meat and dairy substitute food products specific to the retail region.
-The data were originally collected by Nielsen Market Track.
+| Narrative Type | Definition | Example Keywords / Clues |
+|----------------|------------|---------------------------|
+| Health | Videos that frame plant-based foods through health, nutrition, diet, personal well-being, or bodily benefits | health, healthy, nutrition, protein, diet, wellness, organic |
+| Sustainability | Videos that frame plant-based foods through sustainable consumption, ethical responsibility, or future-oriented food systems | sustainable, sustainability, eco, green, ethical, responsible |
+| Environment | Videos that discuss climate, emissions, pollution, biodiversity, land use, or environmental impacts | environment, climate, carbon, CO2, emissions, planet, pollution |
+| Hedonism | Videos that frame plant-based foods through taste, pleasure, texture, enjoyment, or sensory experience | taste, tasty, delicious, flavour, juicy, crispy, creamy |
+| Animal Welfare | Videos that frame plant-based foods through animal welfare, cruelty-free consumption, factory farming, or ethical treatment of animals | animal welfare, cruelty free, slaughter, factory farming, livestock |
+
+#### D.3 European Plant-Based Foods Sales Data
+
+The sales dataset contains information on plant-based food products sold in European countries. The original dataset covers plant-based food sales between 2017 and 2020, while this project focuses on the 2018-2020 period to match the YouTube data collection window.
+
+The main variables used in this analysis are:
+
+| Variable | Description |
+|----------|-------------|
+| Country | Country where the sales data were recorded |
+| Year | Year of observation |
+| Product Group | Category of plant-based food product |
+| Value EUR | Sales value measured in euros |
+| Volume kg/l | Sales volume measured in kilograms or litres |
+
+The sales data are used to examine differences in plant-based food markets across countries, years, and product groups. The YouTube narrative data are then aggregated at the country-year level and merged with the sales data to explore possible correlations between online narratives and plant-based food sales performance.
 
 
 ## 📂 Folder Structure
