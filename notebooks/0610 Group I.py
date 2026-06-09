@@ -1,39 +1,43 @@
 # %% [markdown]
-# Project Summary
+# Project Summary and Research Questions
 # 
-# This project investigates the relationship between plant-based food sales and
-# YouTube narratives across European countries from 2018 to 2020. The analysis
-# combines two types of data: sales data for plant-based food products and
-# YouTube video metadata collected through the YouTube Data API.
+# This project examines how plant-based food markets and YouTube narratives developed across selected European countries from 2018 to 2020. It combines country-year-product sales data with YouTube video text data to compare market size, product-category composition, narrative prevalence, and the relationship between online narratives and plant-based food sales. Since sales value and volume are strongly correlated, the later analysis focuses mainly on Value EUR as the key market indicator.
 # 
-# The sales analysis examines descriptive patterns across countries, years, and
-# product groups. Average sales value in EUR and sales volume in kg/l are compared
-# to identify market differences between countries, changes over time, and
-# variation across product categories.
-# 
-# The YouTube analysis focuses on narrative themes in video titles and
-# descriptions. Five narrative categories are measured using keyword-based text
-# analysis: health, sustainability, environment, hedonism, and animal welfare.
-# These narrative variables are summarized by country and year to explore how
-# plant-based food discussions differ across markets and change over time.
-# 
-# Finally, the sales data and YouTube narrative data are merged at the
-# country-year level. Correlation and regression analyses are used to explore
-# whether YouTube attention and narrative intensity are associated with sales
-# value and sales volume. The results are interpreted as exploratory rather than
-# causal, since sales performance may also be influenced by prices, product
-# availability, market maturity, and retail conditions.
-# 
-# - Main RQ: How are plant-based food sales patterns related to YouTube narratives across European countries from 2018 to 2020?
-# - Sub-RQ1: How do plant-based food sales differ across countries, years, and product groups?
-# - Sub-RQ2: What narratives are most commonly used in YouTube videos about plant-based food across countries and over time?
-# - Sub-RQ3: To what extent are YouTube narrative variables associated with plant-based food sales value and sales volume?
+# - Main RQ: How are YouTube narratives about plant-based foods associated with plant-based food sales patterns across selected European countries from 2018 to 2020?
+# - Sub-RQ1: How do plant-based food sales values vary across countries, years, and product groups?
+# - Sub-RQ2: How does the product-category composition of plant-based food sales differ across countries and over time?
+# - Sub-RQ3: Which YouTube narratives are most frequently mentioned across countries and years?
+# - Sub-RQ4: To what extent are YouTube narrative mentions associated with total plant-based food sales value at the country-year level?
 
 # %%
 import os
+import sys
+from pathlib import Path
+
 import pandas as pd
 import requests
 import matplotlib.pyplot as plt
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1] if "__file__" in globals() else Path("..").resolve()
+sys.path.insert(0, str(PROJECT_ROOT / "src"))
+
+from analysis_helpers import (
+    add_log_total_value,
+    add_narrative_features,
+    add_sales_log_columns,
+    combine_youtube_csvs,
+    create_narrative_share_table,
+    create_share_table,
+    create_wide_value_table,
+    fit_ols,
+    merge_narrative_sales,
+    narrative_mention_columns,
+    prepare_sales_data,
+    prepare_youtube_text,
+    print_basic_info,
+    print_sales_overview,
+    summarize_narratives,
+)
 
 print(f"current working directory:{os.getcwd()}")
 print("Files in current directory:")
@@ -41,30 +45,13 @@ print(os.listdir("."))
 
 # %%
 df = pd.read_csv("../data/Clean/plant_based_food_sales_data.csv")
-def basics(df):
-    print(df.info())
-    print(df.head())
-basics(df)
+print_basic_info(df)
 
 # %%
-df= df[['Country', 'Year', 'Value EUR', 'Volume kg/l', 'Product Group']]
-df = df.dropna()
-df = df[(df['Value EUR'] != 0) & (df['Volume kg/l'] != 0)]
-df = (df.groupby(['Country', 'Year', 'Product Group'], as_index=False)[['Value EUR', 'Volume kg/l']].sum())
+df = prepare_sales_data(df)
 
 # %%
-def details(df):
-    print('Head')
-    print(df.head(2))
-    print('Tail')
-    print(df.tail(2))
-    print("\nUnique countries in the dataset:")
-    print(df.Country.unique())
-    print("\nUnique years in the dataset:")
-    print(df.Year.unique())
-    print("\nUnique product groups in the dataset:")
-    print(df['Product Group'].unique())
-details(df)
+print_sales_overview(df)
 
 # %%
 df[['Value EUR', 'Volume kg/l']].hist(figsize=(10, 4))
@@ -74,8 +61,7 @@ df[['Value EUR', 'Volume kg/l']].hist(figsize=(10, 4))
 
 # %%
 import numpy as np
-df['log_value'] = np.log(df['Value EUR'])
-df['log_volume'] = np.log(df['Volume kg/l'])
+df = add_sales_log_columns(df)
 df[['log_value', 'log_volume']].hist(figsize=(10, 4))
 
 # %% [markdown]
@@ -84,8 +70,7 @@ df[['log_value', 'log_volume']].hist(figsize=(10, 4))
 # %%
 import statsmodels.api as sm
 X = sm.add_constant(df[['log_volume']])
-y = df['log_value']
-model_log = sm.OLS(y, X).fit()
+model_log = fit_ols(df, ['log_volume'], 'log_value')
 print(model_log.summary())
 
 # %%
@@ -102,16 +87,7 @@ plt.show()
 # The log-log OLS regression shows a strong positive relationship between Volume kg/l and Value EUR. The model has a high R-squared value of 0.957, indicating that log volume explains most of the variation in log sales value. The coefficient of log_volume is positive and statistically significant, suggesting that higher sales volume is strongly associated with higher sales value. Therefore, since value and volume are highly correlated, the following analysis focuses on Value EUR as the main indicator and does not discuss Volume kg/l separately.
 
 # %%
-df_wide_value = df.pivot(
-    index=['Country', 'Year'],
-    columns='Product Group',
-    values='Value EUR')
-df_wide_value = df_wide_value.reset_index()
-df_wide_value.columns.name = None
-df_wide_value.head()
-
-# %%
-df_wide_value['Total Value EUR'] = (df_wide_value.drop(columns=['Country', 'Year']).sum(axis=1))
+df_wide_value = create_wide_value_table(df)
 df_wide_value.head()
 
 # %%
@@ -159,9 +135,7 @@ plt.show()
 # Plant-based food sales increased in most selected European countries from 2018 to 2020, but the pace and scale of growth differed clearly across markets. The United Kingdom showed the strongest upward trend and became the leading market by 2020, while Spain and Italy remained consistently large markets. In contrast, countries such as Denmark and Romania stayed at much lower sales levels, suggesting that market expansion was uneven and mainly driven by a few major countries.
 
 # %%
-product_cols = df_wide_value.columns.drop(['Country', 'Year', 'Total Value EUR'])
-df_share = df_wide_value.copy()
-df_share[product_cols] = (df_wide_value[product_cols].div(df_wide_value['Total Value EUR'], axis=0) * 100)
+df_share, product_cols = create_share_table(df_wide_value)
 df_share.head()
 
 # %%
@@ -206,550 +180,461 @@ plt.show()
 # The following analysis is based on video information related to plant-based foods collected using the YouTube API. Since the YouTube API requires a personal API key, and repeated execution may trigger quota limits, the API extraction code is not executed in the following notebook. Instead, the extracted CSV dataset is provided in the data/Raw directory. The original Python source code used for API extraction can be found in the src directory.
 
 # %%
-from pathlib import Path
-
-# Folder where your country-level YouTube CSV files are saved
 folder = Path("../data/Raw")
-
-# Find all country-level CSV files
-csv_files = list(folder.glob("youtube_plant_based_*.csv"))
-
-# Exclude already-combined files if they exist
-csv_files = [
-    file for file in csv_files
-    if "all_countries" not in file.name
-]
-
+df_all_youtube, csv_files = combine_youtube_csvs(folder)
 print("Number of CSV files found:", len(csv_files))
-
 for file in csv_files:
     print(file.name)
-
-if len(csv_files) == 0:
-    raise ValueError("No CSV files found. Please check your folder path.")
-
-df_list = []
-
-for file in csv_files:
-    temp_df = pd.read_csv(file)
-
-    # Add source file name for tracking
-    temp_df["source_file"] = file.name
-
-    df_list.append(temp_df)
-
-# Combine all CSV files
-df_all_youtube = pd.concat(df_list, ignore_index=True)
-
-# Remove duplicated rows if the same video appears more than once for the same country
-if {"country", "video_id"}.issubset(df_all_youtube.columns):
-    df_all_youtube = df_all_youtube.drop_duplicates(
-        subset=["country", "video_id"]
-    )
-else:
-    print("Warning: country or video_id column not found. Skipping duplicate removal by country and video_id.")
-
-# Save combined CSV
 output_path = folder / "youtube_plant_based_all_countries.csv"
-
-df_all_youtube.to_csv(
-    output_path,
-    index=False,
-    encoding="utf-8-sig"
-)
-
+df_all_youtube.to_csv(output_path, index=False, encoding="utf-8-sig")
 print("\nDone.")
 print("Total rows:", len(df_all_youtube))
 print("Saved to:", output_path)
-
 display(df_all_youtube.head())
 
 # %%
 import re
-
-
 # Load combined YouTube data
 youtube_path = Path("../data/Raw/youtube_plant_based_all_countries.csv")
-
 df_youtube = pd.read_csv(youtube_path)
-
 print(df_youtube.shape)
 display(df_youtube.head())
 
 # %%
-# Make sure date/year exists
-df_youtube["upload_date"] = pd.to_datetime(df_youtube["upload_date"], errors="coerce")
-df_youtube["Year"] = df_youtube["upload_date"].dt.year
-
-# Combine text columns for narrative analysis
-text_cols = ["title", "description", "summary"]
-
-for col in text_cols:
-    if col not in df_youtube.columns:
-        df_youtube[col] = ""
-
-df_youtube["text_for_analysis"] = (
-    df_youtube[text_cols]
-    .fillna("")
-    .astype(str)
-    .agg(" ".join, axis=1)
-    .str.lower()
-)
+df_youtube = prepare_youtube_text(df_youtube)
 
 # %%
 narrative_keywords = {
     "health": [
-        "health", "healthy", "nutrition", "nutritious", "protein", "diet",
-        "wellbeing", "wellness", "fitness", "low fat", "cholesterol",
-        "sugar free", "natural", "organic",
-        "santé", "salud", "gesund", "gesundheit", "salute", "gezond",
-    ],
+        # English
+        "health", "healthy", "healthier", "nutrition", "nutritious", "nutrient",
+        "protein", "high protein", "rich in protein", "diet", "dietary",
+        "wellbeing", "well-being", "wellness", "balanced diet",
+        "low fat", "low calorie", "low sugar", "sugar free", "cholesterol free",
+        "natural", "organic", "clean label", "fiber", "fibre", "vitamin", "mineral",
 
-    "sustainability": [
-        "sustainable", "sustainability", "eco", "green", "ethical",
-        "responsible", "future", "planet friendly",
-        "durable", "durabilité", "sostenible", "nachhaltig",
-        "sostenibilità", "duurzaam",
+        # German - Austria
+        "gesund", "gesunde", "gesunder", "gesundheit", "gesundheitsbewusst",
+        "ernährung", "nährstoff", "nährstoffe", "nährwert", "protein",
+        "eiweiß", "eiweiss", "eiweißreich", "eiweissreich",
+        "diät", "ausgewogene ernährung", "wohlbefinden",
+        "fettarm", "kalorienarm", "zuckerfrei", "ballaststoffe",
+        "natürlich", "bio", "biologisch", "vitamine", "mineralstoffe",
+
+        # French - France / Belgium
+        "santé", "sante", "sain", "saine", "plus sain", "nutrition",
+        "nutritif", "nutritive", "nutriments", "protéine", "proteine",
+        "protéines", "proteines", "riche en protéines", "riche en proteines",
+        "régime", "regime", "bien-être", "bien etre", "équilibré", "equilibre",
+        "faible en gras", "faible en calories", "sans sucre",
+        "sans cholestérol", "sans cholesterol", "naturel", "naturelle",
+        "bio", "biologique", "fibres", "vitamines", "minéraux", "mineraux",
+
+        # Dutch - Netherlands / Belgium
+        "gezond", "gezonde", "gezonder", "gezondheid", "voeding",
+        "voedzaam", "voedingswaarde", "voedingsstoffen",
+        "proteïne", "proteine", "eiwit", "eiwitten", "eiwitrijk",
+        "dieet", "welzijn", "gebalanceerd dieet",
+        "vetarm", "caloriearm", "suikervrij", "cholesterolvrij",
+        "natuurlijk", "biologisch", "vezels", "vitaminen", "mineralen",
+
+        # Danish - Denmark
+        "sund", "sunde", "sundere", "sundhed", "ernæring",
+        "næringsrig", "næringsstoffer", "næringsværdi",
+        "protein", "proteiner", "proteinrig",
+        "kost", "diæt", "velvære", "balanceret kost",
+        "fedtfattig", "kaloriefattig", "sukkerfri", "kolesterolfri",
+        "naturlig", "økologisk", "okologisk", "fibre", "vitaminer", "mineraler",
+
+        # Italian - Italy
+        "salute", "sano", "sana", "più sano", "piu sano",
+        "nutrizione", "nutriente", "nutrienti", "valore nutrizionale",
+        "proteina", "proteine", "ricco di proteine",
+        "dieta", "benessere", "dieta equilibrata",
+        "pochi grassi", "basso contenuto di grassi",
+        "poche calorie", "senza zucchero", "senza colesterolo",
+        "naturale", "biologico", "bio", "fibre", "vitamine", "minerali",
+
+        # Romanian - Romania
+        "sănătate", "sanatate", "sănătos", "sanatos", "sănătoasă", "sanatoasa",
+        "mai sănătos", "mai sanatos", "nutriție", "nutritie",
+        "nutritiv", "nutrienți", "nutrienti", "valoare nutritivă", "valoare nutritiva",
+        "proteină", "proteina", "proteine", "bogat în proteine", "bogat in proteine",
+        "dietă", "dieta", "bunăstare", "bunastare", "dietă echilibrată",
+        "fără zahăr", "fara zahar", "sărac în grăsimi", "sarac in grasimi",
+        "natural", "organic", "bio", "fibre", "vitamine", "minerale",
+
+        # Spanish - Spain
+        "salud", "saludable", "más saludable", "mas saludable",
+        "nutrición", "nutricion", "nutritivo", "nutritiva", "nutrientes",
+        "valor nutricional", "proteína", "proteina", "proteínas", "proteinas",
+        "rico en proteínas", "rico en proteinas",
+        "dieta", "bienestar", "dieta equilibrada",
+        "bajo en grasa", "bajo en calorías", "bajo en calorias",
+        "sin azúcar", "sin azucar", "sin colesterol",
+        "natural", "orgánico", "organico", "ecológico", "ecologico",
+        "fibra", "vitaminas", "minerales"
     ],
 
     "environment": [
-        "environment", "environmental", "climate", "carbon", "co2",
-        "emissions", "greenhouse gas", "planet", "earth", "pollution",
-        "biodiversity", "water use", "land use",
-        "climat", "clima", "klima", "ambiente", "milieu",
-    ],
+        # English
+        "environment", "environmental", "eco", "ecological", "green",
+        "sustainable", "sustainability", "climate", "climate change",
+        "carbon", "carbon footprint", "co2", "co2e", "emissions",
+        "greenhouse gas", "greenhouse gases", "ghg",
+        "biodiversity", "water use", "land use", "resource use",
+        "planet", "planet-friendly", "earth", "low impact",
+        "low carbon", "zero waste", "renewable", "recyclable",
 
-    "hedonism": [
-        "taste", "tasty", "delicious", "flavour", "flavor", "yummy",
-        "enjoy", "pleasure", "craving", "juicy", "crispy", "creamy",
-        "comfort food", "indulgent",
-        "goût", "délicieux", "sabor", "rico", "sabroso",
-        "geschmack", "lecker", "gusto", "smaak", "lekker",
+        # German - Austria
+        "umwelt", "umweltfreundlich", "umweltbewusst", "ökologisch", "okologisch",
+        "öko", "oko", "grün", "gruen", "nachhaltig", "nachhaltigkeit",
+        "klima", "klimawandel", "klimaschutz",
+        "kohlenstoff", "co2", "co2-fußabdruck", "co2 fussabdruck",
+        "emissionen", "treibhausgas", "treibhausgase",
+        "biodiversität", "biodiversitaet", "artenvielfalt",
+        "wasserverbrauch", "landnutzung", "ressourcenverbrauch",
+        "planet", "erde", "klimafreundlich", "kohlenstoffarm",
+
+        # French - France / Belgium
+        "environnement", "environnemental", "écologique", "ecologique",
+        "écolo", "ecolo", "vert", "verte", "durable", "durabilité", "durabilite",
+        "climat", "changement climatique", "réchauffement climatique",
+        "rechauffement climatique", "carbone", "empreinte carbone",
+        "co2", "émissions", "emissions", "gaz à effet de serre", "gaz a effet de serre",
+        "biodiversité", "biodiversite", "utilisation de l'eau", "consommation d'eau",
+        "utilisation des terres", "usage des terres", "ressources",
+        "planète", "planete", "terre", "faible impact", "bas carbone",
+
+        # Dutch - Netherlands / Belgium
+        "milieu", "milieuvriendelijk", "milieubewust", "ecologisch",
+        "eco", "groen", "duurzaam", "duurzaamheid",
+        "klimaat", "klimaatverandering", "klimaatvriendelijk",
+        "koolstof", "co2", "co2-voetafdruk", "carbon footprint",
+        "uitstoot", "emissies", "broeikasgas", "broeikasgassen",
+        "biodiversiteit", "waterverbruik", "landgebruik",
+        "grondstoffengebruik", "hulpbronnen", "planeet", "aarde",
+        "lage impact", "koolstofarm",
+
+        # Danish - Denmark
+        "miljø", "miljo", "miljøvenlig", "miljovenlig", "miljøbevidst",
+        "økologisk", "okologisk", "grøn", "gron",
+        "bæredygtig", "baeredygtig", "bæredygtighed", "baeredygtighed",
+        "klima", "klimaforandringer", "klimavenlig",
+        "kulstof", "co2", "co2-aftryk", "carbon footprint",
+        "udledning", "emissioner", "drivhusgas", "drivhusgasser",
+        "biodiversitet", "vandforbrug", "arealanvendelse", "jordforbrug",
+        "ressourceforbrug", "planet", "jorden", "lav miljøpåvirkning",
+        "lav miljopavirkning", "lavt klimaaftryk",
+
+        # Italian - Italy
+        "ambiente", "ambientale", "ecologico", "eco", "verde",
+        "sostenibile", "sostenibilità", "sostenibilita",
+        "clima", "cambiamento climatico", "riscaldamento globale",
+        "carbonio", "impronta di carbonio", "co2",
+        "emissioni", "gas serra", "gas a effetto serra",
+        "biodiversità", "biodiversita", "uso dell'acqua", "consumo d'acqua",
+        "uso del suolo", "uso della terra", "risorse",
+        "pianeta", "terra", "basso impatto", "basse emissioni",
+
+        # Romanian - Romania
+        "mediu", "de mediu", "ecologic", "eco", "verde",
+        "sustenabil", "sustenabilitate", "durabil", "durabilitate",
+        "climă", "clima", "schimbări climatice", "schimbari climatice",
+        "încălzire globală", "incalzire globala",
+        "carbon", "amprentă de carbon", "amprenta de carbon", "co2",
+        "emisii", "gaze cu efect de seră", "gaze cu efect de sera",
+        "biodiversitate", "consum de apă", "consum de apa",
+        "utilizarea terenurilor", "folosirea terenurilor",
+        "resurse", "planetă", "planeta", "pământ", "pamant",
+        "impact redus", "emisii reduse",
+
+        # Spanish - Spain
+        "medio ambiente", "ambiental", "ecológico", "ecologico",
+        "eco", "verde", "sostenible", "sostenibilidad",
+        "clima", "cambio climático", "cambio climatico", "calentamiento global",
+        "carbono", "huella de carbono", "co2",
+        "emisiones", "gases de efecto invernadero",
+        "biodiversidad", "uso del agua", "consumo de agua",
+        "uso de la tierra", "uso del suelo", "recursos",
+        "planeta", "tierra", "bajo impacto", "bajas emisiones",
+        "bajo en carbono"
     ],
 
     "animal_welfare": [
+        # English
         "animal welfare", "animal", "animals", "cruelty", "cruelty free",
-        "ethical", "slaughter", "factory farming", "livestock",
-        "cows", "pigs", "chickens",
-        "bien-être animal", "bienestar animal", "tierschutz",
-        "benessere animale", "dierenwelzijn",
+        "animal-friendly", "animal friendly", "ethical", "ethically made",
+        "no slaughter", "slaughter-free", "slaughter", "cows", "pigs", "chickens",
+        "livestock", "factory farming", "animal suffering", "animal rights",
+
+        # German - Austria
+        "tierwohl", "tierschutz", "tierfreundlich", "tierleid",
+        "ohne tierleid", "grausamkeitsfrei", "tiere", "tier",
+        "ethisch", "schlachtung", "ohne schlachtung", "schlachtfrei",
+        "kühe", "kuehe", "schweine", "hühner", "huehner",
+        "nutztier", "nutztiere", "massentierhaltung", "tierrechte",
+
+        # French - France / Belgium
+        "bien-être animal", "bien etre animal", "protection animale",
+        "animaux", "animal", "sans cruauté", "sans cruaute",
+        "cruauté", "cruaute", "respect des animaux",
+        "éthique", "ethique", "abattage", "sans abattage",
+        "vaches", "porcs", "cochons", "poulets",
+        "élevage industriel", "elevage industriel", "souffrance animale",
+        "droits des animaux",
+
+        # Dutch - Netherlands / Belgium
+        "dierenwelzijn", "dierenbescherming", "diervriendelijk",
+        "dierenleed", "zonder dierenleed", "wreedheidvrij",
+        "dieren", "dier", "ethisch", "slacht", "slachten",
+        "zonder slacht", "slachtvrij", "koeien", "varkens", "kippen",
+        "vee", "veehouderij", "bio-industrie", "dierenrechten",
+
+        # Danish - Denmark
+        "dyrevelfærd", "dyrevelfaerd", "dyrebeskyttelse",
+        "dyrevenlig", "dyrelidelse", "uden dyrelidelse",
+        "grusomhedsfri", "dyr", "etisk", "slagtning",
+        "uden slagtning", "slagtefri", "køer", "koer", "grise", "svin", "kyllinger",
+        "husdyr", "fabrikslandbrug", "industrielt landbrug", "dyrerettigheder",
+
+        # Italian - Italy
+        "benessere animale", "protezione degli animali",
+        "animali", "animale", "senza crudeltà", "senza crudelta",
+        "crudele", "crudeltà", "crudelta", "amico degli animali",
+        "etico", "etica", "macellazione", "senza macellazione",
+        "mucche", "vacche", "maiali", "polli",
+        "allevamento intensivo", "sofferenza animale", "diritti degli animali",
+
+        # Romanian - Romania
+        "bunăstarea animalelor", "bunastarea animalelor",
+        "protecția animalelor", "protectia animalelor",
+        "animale", "animal", "fără cruzime", "fara cruzime",
+        "cruzime", "prietenos cu animalele", "etic", "etică", "etica",
+        "sacrificare", "fără sacrificare", "fara sacrificare",
+        "vaci", "porci", "pui", "găini", "gaini",
+        "creștere intensivă", "crestere intensiva",
+        "suferința animalelor", "suferinta animalelor",
+        "drepturile animalelor",
+
+        # Spanish - Spain
+        "bienestar animal", "protección animal", "proteccion animal",
+        "animales", "animal", "sin crueldad", "libre de crueldad",
+        "crueldad", "amigable con los animales",
+        "ético", "etico", "ética", "etica",
+        "sacrificio", "sin sacrificio", "matadero",
+        "vacas", "cerdos", "pollos", "ganado",
+        "ganadería industrial", "ganaderia industrial",
+        "sufrimiento animal", "derechos de los animales"
     ],
+
+    "hedonism": [
+        # English
+        "taste", "tasty", "delicious", "flavour", "flavor",
+        "flavourful", "flavorful", "yummy", "enjoy", "enjoyment",
+        "pleasure", "pleasurable", "comfort food", "indulgent",
+        "craving", "satisfying", "juicy", "crispy", "tender",
+        "mouthfeel", "texture", "aroma", "smell", "savory", "savoury",
+        "umami", "gourmet", "treat",
+
+        # German - Austria
+        "geschmack", "lecker", "köstlich", "koestlich",
+        "schmackhaft", "genuss", "genießen", "geniessen",
+        "vergnügen", "vergnuegen", "wohlfühlessen", "wohlfuehlessen",
+        "komfortessen", "verwöhnend", "verwoehnend",
+        "heißhunger", "heisshunger", "befriedigend",
+        "saftig", "knusprig", "zart", "textur", "mundgefühl", "mundgefuehl",
+        "aroma", "geruch", "herzhaft", "umami", "feinschmecker",
+
+        # French - France / Belgium
+        "goût", "gout", "savoureux", "savoureuse", "délicieux", "delicieux",
+        "délicieuse", "delicieuse", "plaisir", "se faire plaisir",
+        "gourmand", "gourmande", "gourmandise", "réconfortant", "reconfortant",
+        "nourriture réconfortante", "nourriture reconfortante",
+        "envie", "satisfaisant", "satisfaisante",
+        "juteux", "juteuse", "croustillant", "croustillante",
+        "tendre", "texture", "arôme", "arome", "odeur",
+        "umami", "gastronomique",
+
+        # Dutch - Netherlands / Belgium
+        "smaak", "lekker", "heerlijk", "smakelijk",
+        "genieten", "genot", "plezier", "comfortfood",
+        "troosteten", "verwennerij", "verleidelijk",
+        "trek", "craving", "bevredigend", "sappig",
+        "knapperig", "mals", "textuur", "mondgevoel",
+        "aroma", "geur", "hartig", "umami", "gourmet",
+
+        # Danish - Denmark
+        "smag", "velsmagende", "lækker", "laekker",
+        "lækkert", "laekkert", "nyde", "nyder", "nydelse",
+        "fornøjelse", "fornojelse", "komfortmad",
+        "trøstemad", "troestemad", "forkælelse", "forkaelelse",
+        "craving", "lyst", "tilfredsstillende",
+        "saftig", "sprød", "sprod", "mør", "moer",
+        "tekstur", "mundfølelse", "mundfolelse",
+        "aroma", "duft", "umami", "gourmet",
+
+        # Italian - Italy
+        "gusto", "sapore", "gustoso", "gustosa",
+        "delizioso", "deliziosa", "buono", "buona",
+        "piacere", "godere", "godimento",
+        "comfort food", "cibo di conforto",
+        "indulgente", "sfizioso", "sfiziosa",
+        "voglia", "soddisfacente", "succoso", "succosa",
+        "croccante", "tenero", "tenera",
+        "consistenza", "texture", "sensazione in bocca",
+        "aroma", "profumo", "saporito", "umami", "gourmet",
+
+        # Romanian - Romania
+        "gust", "gustos", "gustoasă", "gustoasa",
+        "delicios", "delicioasă", "delicioasa",
+        "plăcere", "placere", "a savura", "savurare",
+        "mâncare de confort", "mancare de confort",
+        "răsfăț", "rasfat", "poftă", "pofta",
+        "satisfăcător", "satisfacator",
+        "suculent", "crocant", "fraged",
+        "textură", "textura", "senzație în gură", "senzatie in gura",
+        "aromă", "aroma", "miros", "savuros", "umami", "gourmet",
+
+        # Spanish - Spain
+        "sabor", "sabroso", "sabrosa", "rico", "rica",
+        "delicioso", "deliciosa", "placer", "disfrutar",
+        "disfrute", "comida reconfortante",
+        "capricho", "indulgente", "antojo",
+        "satisfactorio", "satisfactoria",
+        "jugoso", "jugosa", "crujiente", "tierno", "tierna",
+        "textura", "sensación en boca", "sensacion en boca",
+        "aroma", "olor", "umami", "gourmet"
+    ]
 }
 
 # %%
-# Make sure upload_date and Year are available
-df_youtube["upload_date"] = pd.to_datetime(df_youtube["upload_date"], errors="coerce")
-df_youtube["Year"] = df_youtube["upload_date"].dt.year
-
-# Make sure text columns exist
-text_cols = ["title", "description"]
-
-for col in text_cols:
-    if col not in df_youtube.columns:
-        df_youtube[col] = ""
-
-# Combine title and description for narrative analysis
-df_youtube["text_for_analysis"] = (
-    df_youtube[text_cols]
-    .fillna("")
-    .astype(str)
-    .agg(" ".join, axis=1)
-    .str.lower()
-)
-
-# %%
-import re
-
-def count_keywords(text, keywords):
-    if pd.isna(text):
-        return 0
-    
-    text = str(text).lower()
-    count = 0
-    
-    for keyword in keywords:
-        pattern = r"\b" + re.escape(keyword.lower()) + r"\b"
-        count += len(re.findall(pattern, text))
-    
-    return count
-
-
-for narrative, keywords in narrative_keywords.items():
-    df_youtube[f"{narrative}_count"] = df_youtube["text_for_analysis"].apply(
-        lambda x: count_keywords(x, keywords)
-    )
-
+df_youtube = add_narrative_features(df_youtube, narrative_keywords)
 df_youtube.head()
 
 # %%
-for narrative in narrative_keywords.keys():
-    df_youtube[f"{narrative}_mentioned"] = (
-        df_youtube[f"{narrative}_count"] > 0
-    ).astype(int)
-
-df_youtube.head()
+narrative_by_year = summarize_narratives(df_youtube, "Year", narrative_keywords).set_index("Year")
+narrative_by_country_year = summarize_narratives(df_youtube, ["country", "Year"], narrative_keywords)
+narrative_by_year
 
 # %%
-narrative_count_cols = [
-    f"{narrative}_count"
-    for narrative in narrative_keywords.keys()
-]
-
-narrative_mentioned_cols = [
-    f"{narrative}_mentioned"
-    for narrative in narrative_keywords.keys()
-]
-
-print(narrative_count_cols)
-print(narrative_mentioned_cols)
-
-# %%
-country_narrative_summary = df_youtube.groupby("country").agg(
-    video_count=("video_id", "nunique"),
-    **{col: (col, "sum") for col in narrative_count_cols},
-    **{col: (col, "mean") for col in narrative_mentioned_cols}
-).reset_index()
-
-country_narrative_summary
-
-# %%
-country_year_narrative_summary = df_youtube.groupby(["country", "Year"]).agg(
-    video_count=("video_id", "nunique"),
-    **{col: (col, "sum") for col in narrative_count_cols},
-    **{col: (col, "mean") for col in narrative_mentioned_cols}
-).reset_index()
-
-country_year_narrative_summary
-
-# %%
-from pathlib import Path
-
-output_folder = Path("../data/Raw")
-
-enriched_path = output_folder / "youtube_plant_based_all_countries_with_narratives.csv"
-country_summary_path = output_folder / "youtube_narrative_summary_by_country.csv"
-country_year_summary_path = output_folder / "youtube_narrative_summary_by_country_year.csv"
-
-df_youtube.to_csv(enriched_path, index=False, encoding="utf-8-sig")
-country_narrative_summary.to_csv(country_summary_path, index=False, encoding="utf-8-sig")
-country_year_narrative_summary.to_csv(country_year_summary_path, index=False, encoding="utf-8-sig")
-
-print("Saved enriched video-level data to:", enriched_path)
-print("Saved country summary to:", country_summary_path)
-print("Saved country-year summary to:", country_year_summary_path)
-
-# %%
-
-plot_df = country_narrative_summary.set_index("country")[narrative_count_cols]
-
-plot_df.plot(
-    kind="bar",
-    figsize=(14, 6)
-)
-
-plt.title("Narrative Keyword Counts by Country")
-plt.xlabel("Country")
-plt.ylabel("Keyword Count")
-plt.xticks(rotation=45, ha="right")
+narrative_by_year.plot(kind='line',marker='o',figsize=(9, 5))
+plt.title('Number of Videos Mentioning Each Narrative by Year')
+plt.xlabel('Year')
+plt.ylabel('Number of Videos')
+plt.xticks(narrative_by_year.index)
+plt.legend(title='Narrative', bbox_to_anchor=(1.05, 1), loc='upper left')
 plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# This figure shows the frequency of different narrative keywords in YouTube videos across countries. Health-related keywords appear most frequently in almost all countries, suggesting that health is the dominant narrative in plant-based food videos. France, Italy, the Netherlands, Spain, and the United Kingdom show relatively high overall narrative counts. Sustainability and environmental narratives are also visible, especially in the United Kingdom and the Netherlands. Hedonism-related keywords are particularly high in Italy, while animal welfare is more prominent in the Netherlands, Spain, and the United Kingdom. Overall, the results suggest that health is the main narrative, but the emphasis on other narratives varies across countries.
+# The figure shows that the number of YouTube videos mentioning plant-based food narratives increased across all four themes from 2018 to 2020. Environmental and hedonistic narratives showed the strongest growth and became the most frequently mentioned themes by 2020, while health-related narratives also increased steadily. In contrast, animal welfare remained the least mentioned narrative throughout the period, despite some growth. This suggests that YouTube discussions around plant-based foods became more active over time, with environmental benefits and enjoyment-related appeals gaining particular visibility.
 
 # %%
-trend_df = country_year_narrative_summary.groupby("Year")[narrative_count_cols].sum()
-
-trend_df.plot(
-    kind="line",
-    marker="o",
-    figsize=(10, 6)
-)
-
-plt.title("Narrative Keyword Trends Over Time")
-plt.xlabel("Year")
-plt.ylabel("Keyword Count")
-plt.xticks([2018, 2019, 2020])
-plt.grid(True, alpha=0.3)
-plt.tight_layout()
-plt.show()
-
-# %% [markdown]
-# This figure shows how narrative keyword counts changed from 2018 to 2020. Health-related keywords increased strongly over time and remained the most dominant narrative in every year. Sustainability and environmental narratives also rose steadily, suggesting growing attention to ecological concerns. Hedonism-related keywords dipped slightly in 2019 but increased again in 2020, while animal welfare showed a more moderate upward trend. Overall, the results indicate that plant-based food narratives became more prominent over time, especially around health, sustainability, and environmental themes.
-
-# %%
-sales_year_country = df.groupby(['Country', 'Year'])[['Value EUR', 'Volume kg/l']].mean().reset_index()
-
-sales_year_country.head()
-
-# %%
-narrative_path = Path("../data/Raw/youtube_narrative_summary_by_country_year.csv")
-
-narrative_df = pd.read_csv(narrative_path)
-
-narrative_df = narrative_df.rename(columns={
-    "country": "Country"
-})
-
-narrative_df.head()
-
-# %%
-narrative_df["health_per_video"] = narrative_df["health_count"] / narrative_df["video_count"]
-
-narrative_df["sustainability_environment_per_video"] = (
-    narrative_df["sustainability_count"] + narrative_df["environment_count"]
-) / narrative_df["video_count"]
-
-narrative_df.head()
-
-# %%
-merged_df = pd.merge(
-    sales_year_country,
-    narrative_df,
-    on=["Country", "Year"],
-    how="inner"
-)
-
-print(merged_df.shape)
-display(merged_df.head())
-
-# %%
-corr1_df = merged_df[["health_per_video", "Value EUR"]].dropna()
-
-X = sm.add_constant(corr1_df["health_per_video"])
-y = corr1_df["Value EUR"]
-
-model_health_value = sm.OLS(y, X).fit()
-
-print(model_health_value.summary())
-
-# %%
-plt.figure(figsize=(8, 6))
-
-sns.regplot(
-    data=corr1_df,
-    x="health_per_video",
-    y="Value EUR",
-    scatter_kws={"alpha": 0.7},
-    line_kws={"color": "red"}
-)
-
-plt.title("Correlation between Health Narrative and Value EUR")
-plt.xlabel("Health keyword count per video")
-plt.ylabel("Average Value EUR")
-plt.grid(True, alpha=0.3)
-plt.tight_layout()
-plt.show()
-
-# %% [markdown]
-# The OLS regression examines whether health-related YouTube narrative intensity is associated with average sales value in EUR. The coefficient for health_per_video is positive, suggesting that country-year observations with more health-related keywords per video tend to have higher average sales value. However, the relationship is not statistically significant, as the p-value is 0.337, which is above the 0.05 threshold. The R-squared value is also low at 0.037, meaning that health narrative intensity explains only about 3.7% of the variation in Value EUR.
-# 
-# The scatter plot shows the same pattern: although the regression line slopes upward, the points are widely dispersed and the confidence interval is broad. Therefore, the result should be interpreted as weak and exploratory. In this dataset, health narratives appear to have a positive but non-significant relationship with sales value.
-
-# %%
-corr2_df = merged_df[["sustainability_environment_per_video", "Volume kg/l"]].dropna()
-
-X = sm.add_constant(corr2_df["sustainability_environment_per_video"])
-y = corr2_df["Volume kg/l"]
-
-model_sustainability_volume = sm.OLS(y, X).fit()
-
-print(model_sustainability_volume.summary())
-
-# %%
-plt.figure(figsize=(8, 6))
-
-sns.regplot(
-    data=corr2_df,
-    x="sustainability_environment_per_video",
-    y="Volume kg/l",
-    scatter_kws={"alpha": 0.7},
-    line_kws={"color": "red"}
-)
-
-plt.title("Correlation between Sustainability/Environment Narrative and Volume")
-plt.xlabel("Sustainability + environment keyword count per video")
-plt.ylabel("Average Volume kg/l")
-plt.grid(True, alpha=0.3)
-plt.tight_layout()
-plt.show()
-
-# %% [markdown]
-# 
-# The regression examines whether sustainability and environment narrative intensity is related to average sales volume. The coefficient is negative, suggesting a weak negative relationship between sustainability/environment keywords per video and volume. However, the p-value is 0.565, which is above 0.05, so this relationship is not statistically significant.
-# 
-# The R-squared value is only 0.013, meaning that this narrative variable explains very little variation in sales volume. Overall, the result suggests that sustainability and environmental narratives are not strongly associated with sales volume in this dataset.
-
-# %%
-sales_year_country = df.groupby(['Country', 'Year'])[['Value EUR', 'Volume kg/l']].mean().reset_index()
-
-narrative_path = "../data/Raw/youtube_narrative_summary_by_country_year.csv"
-narrative_df = pd.read_csv(narrative_path)
-
-narrative_df = narrative_df.rename(columns={"country": "Country"})
-
-merged_df = pd.merge(
-    sales_year_country,
-    narrative_df,
-    on=["Country", "Year"],
-    how="inner"
-)
-
-# %%
-narrative_cols = [
-    "health_count",
-    "sustainability_count",
-    "environment_count",
-    "hedonism_count",
-    "animal_welfare_count"
-]
-
-for col in narrative_cols:
-    merged_df[col.replace("_count", "_per_video")] = (
-        merged_df[col] / merged_df["video_count"]
+narrative_cols = narrative_mention_columns(narrative_keywords)
+df_plot, countries, years = create_narrative_share_table(narrative_by_country_year, narrative_cols)
+fig, axes = plt.subplots(1, len(years), figsize=(18, 5), sharey=True)
+for i, year in enumerate(years):
+    ax = axes[i]
+    data = (
+        df_plot[df_plot['Year'] == year]
+        .set_index('country')
+        .reindex(countries)[narrative_cols]
     )
-
-merged_df["total_narrative_per_video"] = (
-    merged_df["health_per_video"] +
-    merged_df["sustainability_per_video"] +
-    merged_df["environment_per_video"] +
-    merged_df["hedonism_per_video"] +
-    merged_df["animal_welfare_per_video"]
-)
-
-# %%
-corr_vars = [
-    "Value EUR",
-    "Volume kg/l",
-    "video_count",
-    "health_per_video",
-    "sustainability_per_video",
-    "environment_per_video",
-    "hedonism_per_video",
-    "animal_welfare_per_video",
-    "total_narrative_per_video"
-]
-
-corr_matrix = merged_df[corr_vars].corr()
-
-corr_matrix
-
-# %%
-plt.figure(figsize=(11, 8))
-
-sns.heatmap(
-    corr_matrix,
-    annot=True,
-    cmap="coolwarm",
-    center=0,
-    fmt=".2f",
-    linewidths=0.5
-)
-
-plt.title("Correlation Matrix: Sales and YouTube Narratives")
+    data.plot(
+        kind='bar',
+        stacked=True,
+        ax=ax,
+        legend=False)
+    if i > 0:
+        prev_data = (
+            df_plot[df_plot['Year'] == years[i - 1]]
+            .set_index('country')
+            .reindex(countries)[narrative_cols]
+        )
+        change = data - prev_data
+        for country_i, country in enumerate(data.index):
+            bottom = 0
+            for narrative in narrative_cols:
+                value = data.loc[country, narrative]
+                if value > 8:
+                    arrow = '↑' if change.loc[country, narrative] > 0 else '↓'
+                    ax.text(country_i, bottom + value / 2, arrow, ha='center', va='center')
+                bottom += value
+    ax.set_title(year)
+    ax.set_xlabel('Country')
+    ax.set_ylabel('Share (%)')
+    ax.tick_params(axis='x', rotation=45)
+    ax.set_ylim(0, 100)
+plt.legend(title='Narrative', bbox_to_anchor=(1.05, 1), loc='upper left')
+plt.suptitle('Narrative Share by Country and Year')
 plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# This correlation matrix shows the relationships between sales indicators and YouTube narrative variables. The strongest relationship is between Value EUR and Volume kg/l with a correlation of 0.94, indicating that higher sales volume is strongly associated with higher market value. In contrast, the correlations between sales variables and narrative variables are generally weak. For example, Value EUR has only weak positive correlations with video_count, health_per_video, hedonism_per_video, and total_narrative_per_video.
-# 
-# The matrix also shows that some narrative categories are strongly related to each other. For example, health_per_video is highly correlated with total_narrative_per_video, and environment_per_video is also strongly related to total narrative intensity. Overall, the results suggest that sales value and volume are closely connected, while YouTube narratives have weaker and more exploratory associations with sales performance.
+# The figure shows the narrative share of YouTube videos across countries from 2018 to 2020. Overall, health and environmental narratives account for a large proportion in most countries, while animal welfare takes a relatively smaller share. Hedonism-related narratives also remain important across the three years, suggesting that taste, enjoyment, and daily appeal are frequently used in plant-based food discussions. The arrows show that narrative shares fluctuate by country and year, but there is no single narrative that consistently dominates all markets.
+# These results suggest that plant-based food communication on YouTube is multi-dimensional. Health and environmental messages remain important, but hedonism-related narratives are also widely present. This implies that communication strategies should not rely only on sustainability or ethical arguments. Combining health, environmental benefits, and enjoyable eating experiences may be more effective in attracting mainstream consumers.
 
 # %%
-sales_vars = ["Value EUR", "Volume kg/l"]
+narrative_sales_country_year = merge_narrative_sales(narrative_by_country_year, df_wide_value)
+narrative_sales_country_year.head()
 
-narrative_vars = [
-    "video_count",
-    "health_per_video",
-    "sustainability_per_video",
-    "environment_per_video",
-    "hedonism_per_video",
-    "animal_welfare_per_video",
-    "total_narrative_per_video"
-]
-
-sales_narrative_corr = merged_df[sales_vars + narrative_vars].corr().loc[
-    sales_vars,
-    narrative_vars
-]
-
-plt.figure(figsize=(12, 4))
-
-ax = sns.heatmap(
-    sales_narrative_corr,
-    annot=True,
-    cmap="coolwarm",
-    center=0,
-    fmt=".2f",
-    linewidths=0.5,
-    cbar_kws={"shrink": 0.8}
-)
-
-plt.title("Correlation between Sales Variables and YouTube Narratives", pad=15)
-
-# Make y-axis labels readable
-ax.set_yticklabels(
-    ax.get_yticklabels(),
-    rotation=0,
-    fontsize=11
-)
-
-# Make x-axis labels readable
-ax.set_xticklabels(
-    ax.get_xticklabels(),
-    rotation=45,
-    ha="right",
-    fontsize=10
-)
-
-# Add more margin on the left and bottom
-plt.subplots_adjust(left=0.18, bottom=0.35, right=0.95, top=0.85)
-
+# %%
+model_raw = fit_ols(narrative_sales_country_year, narrative_cols, 'Total Value EUR')
+narrative_sales_country_year = add_log_total_value(narrative_sales_country_year)
+model_log = fit_ols(narrative_sales_country_year, narrative_cols, 'log_total_value')
+fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+axes[0].scatter(model_raw.fittedvalues, model_raw.resid)
+axes[0].axhline(0, color='red', linestyle='--')
+axes[0].set_title('Residuals: Raw Model')
+axes[0].set_xlabel('Fitted Values')
+axes[0].set_ylabel('Residuals')
+axes[1].scatter(model_log.fittedvalues, model_log.resid)
+axes[1].axhline(0, color='red', linestyle='--')
+axes[1].set_title('Residuals: Log Model')
+axes[1].set_xlabel('Fitted Values')
+axes[1].set_ylabel('Residuals')
+plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# This heatmap shows that the correlations between sales variables and YouTube narratives are generally weak. Value EUR has the strongest positive correlation with video_count at 0.34, suggesting that higher YouTube attention is somewhat associated with higher sales value. Hedonism, animal welfare, and total narrative intensity also show weak positive correlations with Value EUR. In contrast, sustainability has a weak negative correlation with both Value EUR and Volume kg/l. Overall, YouTube narratives show only limited correlation with sales performance.
+# The residual plots compare the raw and log-transformed models. The raw model shows large residuals because total sales values vary greatly across countries. After applying the log transformation, the residuals are on a smaller and more stable scale, reducing the influence of very large market sizes. Therefore, the log model is more appropriate for the regression analysis.
 
 # %%
-corr_long = sales_narrative_corr.stack().reset_index()
-corr_long.columns = ["sales_variable", "narrative_variable", "correlation"]
 
-corr_long["abs_correlation"] = corr_long["correlation"].abs()
-
-top_corr = corr_long.sort_values(
-    "abs_correlation",
-    ascending=False
-).head(2)
-
-top_corr
-
+model_log = fit_ols(narrative_sales_country_year, narrative_cols, 'log_total_value')
+print(model_log.summary())
 
 # %%
-for _, row in top_corr.iterrows():
-    sales_var = row["sales_variable"]
-    narrative_var = row["narrative_variable"]
-    corr_value = row["correlation"]
-
-    plt.figure(figsize=(8, 6))
-
+import seaborn as sns
+fig, axes = plt.subplots(2, 2, figsize=(10, 8))
+axes = axes.flatten()
+for i, narrative in enumerate(narrative_cols):
     sns.regplot(
-        data=merged_df,
-        x=narrative_var,
-        y=sales_var,
-        scatter_kws={"alpha": 0.7},
-        line_kws={"color": "red"}
-    )
-
-    plt.title(
-        f"{sales_var} and {narrative_var}\nCorrelation = {corr_value:.2f}"
-    )
-    plt.xlabel(narrative_var.replace("_", " "))
-    plt.ylabel(sales_var)
-    plt.grid(True, alpha=0.3)
-    plt.tight_layout()
-    plt.show()
+        data=narrative_sales_country_year,
+        x=narrative,
+        y='log_total_value',
+        ax=axes[i])
+    axes[i].set_title(narrative)
+    axes[i].set_xlabel('Number of Videos')
+    axes[i].set_ylabel('Log Total Value EUR')
+plt.tight_layout()
+plt.show()
 
 # %% [markdown]
-# These two scatter plots show weak positive relationships between YouTube activity/narratives and sales value. The first plot shows that video_count has a modest positive correlation with Value EUR (r = 0.34), suggesting that country-year groups with more YouTube videos tend to have higher sales value. The second plot shows a weaker positive correlation between hedonism_per_video and Value EUR (r = 0.25), indicating that taste or enjoyment-related narratives may be slightly associated with higher sales value. However, both relationships are relatively weak, so they should be interpreted as exploratory rather than strong evidence.
+# The scatter plots suggest that all four YouTube narratives show a broadly positive relationship with log total plant-based food sales when examined separately. In particular, countries and years with more videos mentioning health, environment, animal welfare, or hedonism-related narratives tend to have higher sales values. However, the OLS regression provides a more nuanced result after controlling for the four narratives simultaneously. The model explains a moderate share of variation in plant-based food sales, with an R-squared value of 0.555, and the overall model is statistically significant. Among the four narratives, health-related mentions show a positive and statistically significant association with log total sales. This suggests that health narratives may be more closely linked to plant-based food market performance during the study period. In contrast, environmental mentions show a negative and statistically significant coefficient after controlling for the other narratives. This does not necessarily mean that environmental narratives reduce sales; rather, it may indicate that environmental narratives overlap with other narratives or are more visible in markets where sales are not growing as strongly. Animal welfare and hedonism-related mentions have positive coefficients, but they are not statistically significant in the regression model. These results imply that YouTube narratives are associated with plant-based food sales, but their effects are not uniform across themes. Health-related communication appears to be the most consistently linked with higher sales, suggesting that health may be an important consumer-facing message in plant-based food markets. At the same time, the difference between the scatter plots and regression results suggests that simple visual correlations may overstate the role of some narratives. For business and communication strategy, this means that narrative framing should not only focus on increasing the number of videos, but also consider which themes are more strongly associated with market outcomes. For policy or sustainability communication, environmental narratives may still be important, but they may need to be combined with more directly consumer-relevant messages, such as health, taste, or daily-use benefits, to translate attention into market demand.
+
+# %%
+narrative_corr = narrative_sales_country_year[narrative_cols].corr()
+plt.figure(figsize=(6, 5))
+sns.heatmap(narrative_corr,annot=True,cmap='coolwarm',vmin=-1,vmax=1)
+plt.title('Correlation Heatmap of Narrative Variables')
+plt.tight_layout()
+plt.show()
+
+# %% [markdown]
+# The heatmap shows positive correlations among all narrative variables. The strongest relationship is between health_mentioned and environment_mentioned at 0.76, followed by environment_mentioned with animal_welfare_mentioned at 0.69 and hedonism_mentioned at 0.68.
+# 
+# The narratives often appear together in the same country-year context, suggesting potential multicollinearity in the regression model. This may explain why some coefficients, such as environment_mentioned, differ from the simple scatterplot trend after controlling for other narratives.
 
 
