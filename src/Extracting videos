@@ -1,0 +1,219 @@
+# **Note:** The following code was used to extract video information through the YouTube API.
+#  It requires a personal API key and repeated execution may trigger API quota limits. 
+# The CSV files generated from this process are then combined in the next step into a complete CSV file and stored in the `data/Raw` folder.
+
+import requests
+import pandas as pd
+import time
+from pathlib import Path
+from datetime import datetime
+
+API_KEY = "PASTE YOUR OWN API_KEY"
+PAGES_PER_QUERY = 1
+REQUEST_SLEEP_SECONDS = 2
+PUBLISHED_AFTER = "2018-01-01T00:00:00Z"
+PUBLISHED_BEFORE = "2021-01-01T00:00:00Z"
+OUTPUT_DIR =Path("../data/Raw")
+COUNTRIES = [
+    {"country": "Austria", "region_code": "AT", "language": "de", "local_name": "Austria Osterreich"},
+    {"country": "Belgium", "region_code": "BE", "language": "nl", "local_name": "Belgium Belgie Belgique"},
+    {"country": "Denmark", "region_code": "DK", "language": "da", "local_name": "Denmark Danmark"},
+    {"country": "France", "region_code": "FR", "language": "fr", "local_name": "France"},
+    {"country": "Italy", "region_code": "IT", "language": "it", "local_name": "Italy Italia"},
+    {"country": "Netherlands", "region_code": "NL", "language": "nl", "local_name": "Netherlands Nederland"},
+    {"country": "Romania", "region_code": "RO", "language": "ro", "local_name": "Romania"},
+    {"country": "Spain", "region_code": "ES", "language": "es", "local_name": "Spain Espana"},
+    {"country": "United Kingdom", "region_code": "GB", "language": "en", "local_name": "United Kingdom UK Britain"},
+]
+
+# Change this later if you want another country
+SELECTED_COUNTRY_NAME = "United Kingdom"
+QUERY_TEMPLATES = [
+    "plant based food {country} consumer behaviour",
+    "plant based meat {country} consumers",
+    "vegan food {country} consumer trends",
+    "plant based diet {country} supermarket",
+    "meat alternatives {country} shoppers",
+    "vegan products {country} consumers",
+    "plant based food {local_name} sustainability",
+    "vegan {local_name} supermarket",
+]
+def get_country_config(country_name):
+    for country in COUNTRIES:
+        if country["country"] == country_name:
+            return country
+    raise ValueError(f"Country not found: {country_name}")
+def youtube_get(endpoint, params, max_retries=5):
+    url = f"https://www.googleapis.com/youtube/v3/{endpoint}"
+    params = dict(params)
+    params["key"] = API_KEY
+    for attempt in range(max_retries):
+        response = requests.get(url, params=params, timeout=30)
+        if response.status_code == 429:
+            wait_time = 30 * (attempt + 1)
+            print(f"429 Too Many Requests. Waiting {wait_time} seconds...")
+            time.sleep(wait_time)
+            continue
+        if response.status_code == 403:
+            print("403 error. You may have reached your YouTube API quota limit.")
+            print(response.text)
+            response.raise_for_status()
+        response.raise_for_status()
+        time.sleep(REQUEST_SLEEP_SECONDS)
+        return response.json()
+    raise Exception("Too many requests. Please wait and run again later.")
+def search_videos(country_config):
+    video_rows = []
+    seen = set()
+    queries = [
+        template.format(
+            country=country_config["country"],
+            local_name=country_config["local_name"])
+        for template in QUERY_TEMPLATES]
+    for query in queries:
+        print("Query:", query)
+        page_token = None
+        for _ in range(PAGES_PER_QUERY):
+            params = {
+                "part": "snippet",
+                "type": "video",
+                "q": query,
+                "maxResults": 50,
+                "regionCode": country_config["region_code"],
+                "relevanceLanguage": country_config["language"],
+                "publishedAfter": PUBLISHED_AFTER,
+                "publishedBefore": PUBLISHED_BEFORE,
+                "safeSearch": "none",
+                "order": "relevance",}
+            if page_token:
+                params["pageToken"] = page_token
+            data = youtube_get("search", params)
+            for item in data.get("items", []):
+                video_id = item.get("id", {}).get("videoId")
+                if video_id and video_id not in seen:
+                    seen.add(video_id)
+                    video_rows.append({
+                        "country": country_config["country"],
+                        "search_region_code": country_config["region_code"],
+                        "search_language": country_config["language"],
+                        "video_id": video_id,})
+            page_token = data.get("nextPageToken")
+            if not page_token:
+                break
+    return video_rows
+
+def fetch_video_details(video_ids):
+    all_items = []
+    for start in range(0, len(video_ids), 50):
+        chunk = video_ids[start:start + 50]
+        if len(chunk) == 0:
+            continue
+        params = {
+            "part": "snippet,statistics,contentDetails",
+            "id": ",".join(chunk),
+            "maxResults": 50,}
+        data = youtube_get("videos", params)
+        all_items.extend(data.get("items", []))
+    return all_items
+
+def fetch_channel_details(channel_ids):
+    channels = {}
+    unique_channel_ids = list(set(channel_ids))
+    for start in range(0, len(unique_channel_ids), 50):
+        chunk = unique_channel_ids[start:start + 50]
+        if len(chunk) == 0:
+            continue
+        params = {
+            "part": "snippet,statistics,brandingSettings",
+            "id": ",".join(chunk),
+            "maxResults": 50, }
+        data = youtube_get("channels", params)
+        for item in data.get("items", []):
+            channels[item["id"]] = item
+    return channels
+
+def clean_text(text):
+    if text is None:
+        return ""
+    return " ".join(str(text).replace("\n", " ").replace("\r", " ").split())
+
+def build_final_rows(search_rows, video_details, channel_details):
+    details_by_id = {
+        item["id"]: item
+        for item in video_details}
+    final_rows = []
+    for row in search_rows:
+        video_id = row["video_id"]
+        item = details_by_id.get(video_id)
+        if item is None:
+            continue
+        snippet = item.get("snippet", {})
+        statistics = item.get("statistics", {})
+        channel_id = snippet.get("channelId", "")
+        channel = channel_details.get(channel_id, {})
+        channel_country = (
+            channel
+            .get("brandingSettings", {})
+            .get("channel", {})
+            .get("country", "")
+        )
+        published_at = snippet.get("publishedAt", "")
+        final_rows.append({
+            "country": row["country"],
+            "search_region_code": row["search_region_code"],
+            "search_language": row["search_language"],
+            "channel_country": channel_country,
+            "default_language": snippet.get("defaultLanguage", ""),
+            "default_audio_language": snippet.get("defaultAudioLanguage", ""),
+            "video_id": video_id,
+            "url": f"https://www.youtube.com/watch?v={video_id}",
+            "title": clean_text(snippet.get("title", "")),
+            "upload_date": published_at[:10],
+            "published_at": published_at,
+            "channel": snippet.get("channelTitle", ""),
+            "channel_id": channel_id,
+            "view_count": statistics.get("viewCount", ""),
+            "like_count": statistics.get("likeCount", ""),
+            "comment_count": statistics.get("commentCount", ""),
+            "description": clean_text(snippet.get("description", "")),
+        })
+    return final_rows
+country_config = get_country_config(SELECTED_COUNTRY_NAME)
+print("==============================")
+print(f"Searching {country_config['country']}")
+print("==============================")
+search_rows = search_videos(country_config)
+search_df = pd.DataFrame(search_rows)
+print("\nTotal rows:", len(search_df))
+if len(search_df) > 0:
+    print("Unique videos:", search_df["video_id"].nunique())
+    unique_video_ids = search_df["video_id"].drop_duplicates().tolist()
+    print("\nFetching video details...")
+    video_details = fetch_video_details(unique_video_ids)
+    channel_ids = [
+        item.get("snippet", {}).get("channelId")
+        for item in video_details
+        if item.get("snippet", {}).get("channelId")
+    ]
+    print("Fetching channel details...")
+    channel_details = fetch_channel_details(channel_ids)
+    final_rows = build_final_rows(
+        search_rows,
+        video_details,
+        channel_details
+    )
+    df_youtube = pd.DataFrame(final_rows)
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    country_file_name = SELECTED_COUNTRY_NAME.lower().replace(" ", "_")
+    csv_path = OUTPUT_DIR / f"youtube_plant_based_{country_file_name}_{stamp}.csv"
+    json_path = OUTPUT_DIR / f"youtube_plant_based_{country_file_name}_{stamp}.json"
+    df_youtube.to_csv(csv_path, index=False, encoding="utf-8-sig")
+    df_youtube.to_json(json_path, orient="records", force_ascii=False, indent=2)
+    print("\nDone.")
+    print("Rows saved:", len(df_youtube))
+    print("CSV saved to:", csv_path)
+    print("JSON saved to:", json_path)
+    display(df_youtube.head())
+else:
+    print("No videos found. Try changing queries or checking your API key.")
