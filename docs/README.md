@@ -1,7 +1,7 @@
 # Video-Analysis--DataScience-Group
 # Plant-Based Food Sales and YouTube Narratives in Europe: An Exploratory Analysis from 2018 to 2020
 
-Project Summary
+# Project Summary
 This project examines how plant-based food markets and YouTube narratives developed across selected European countries from 2018 to 2020. It combines country-year-product sales data with YouTube video text data to compare market size, product-category composition, narrative prevalence, and the relationship between online narratives and plant-based food sales. Since sales value and volume are strongly correlated, the later analysis focuses mainly on Value EUR as the key market indicator.
 
 ## 👥 Team Members
