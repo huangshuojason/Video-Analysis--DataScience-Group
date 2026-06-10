@@ -1,21 +1,24 @@
 # Video-Analysis--DataScience-Group
-
 # Plant-Based Food Sales and YouTube Narratives in Europe: An Exploratory Analysis from 2018 to 2020
+
+# Project Summary
+This project examines how plant-based food markets and YouTube narratives developed across selected European countries from 2018 to 2020. It combines country-year-product sales data with YouTube video text data to compare market size, product-category composition, narrative prevalence, and the relationship between online narratives and plant-based food sales. Since sales value and volume are strongly correlated, the later analysis focuses mainly on Value EUR as the key market indicator.
 
 ## 👥 Team Members
 Each member’s contribution will be added after their tasks are completed.
-- CONG Tianxiang (@congtx) - Research design; Theory development; YouTube API data extraction; advanced code review
+- CONG Tianxiang (@congtx) - Research design; Theory development; YouTube API data extraction; Code review
 - HUANG Shuo (@huangshuojason) - Research design; YouTube API data extraction; Panel data acquisition; visualization
 - Okamoto Junichi (@okamoto-junichi22-debug)- Research design
 
-## Updated on June 2nd
+## Updated on June 10th
 
-Formulate a specific, testable research question.
 - ❓ Research Question
-- Main RQ: How are plant-based food sales patterns related to YouTube narratives across European countries from 2018 to 2020?
-- Sub-RQ1: How do plant-based food sales differ across countries, years, and product groups?
-- Sub-RQ2: What narratives are most commonly used in YouTube videos about plant-based food across countries and over time?
-- Sub-RQ3: To what extent are YouTube narrative variables associated with plant-based food sales value and sales volume?
+- Main RQ: How are YouTube narratives about plant-based foods associated with plant-based food sales patterns across selected European countries from 2018 to 2020?
+- Sub-RQ1: How do plant-based food sales values vary across countries, years, and product groups?
+- Sub-RQ2: How does the product-category composition of plant-based food sales differ across countries and over time?
+- Sub-RQ3: Which YouTube narratives are most frequently mentioned across countries and years?
+- Sub-RQ4: To what extent are YouTube narrative mentions associated with total plant-based food sales value at the country-year level?
+
 
 
 -------------------------------------------
@@ -124,9 +127,9 @@ project/
 Each member’s contribution will be added after their tasks are completed.
 | Member | Tasks |
 |--------|-------|
-| CONG Tianxiang|  Research design; Theory development; YouTube API data extraction; advanced code review|  
-| HUANG Shuo| Research design; YouTube API data extraction; Panel data acquisition|  Visualization
-| Okamoto Junichi | Research design
+| CONG Tianxiang|  Research design; Theory development; YouTube API data extraction; Code review |
+| HUANG Shuo| Research design; YouTube API data extraction; Panel data acquisition; Visualization|
+| Okamoto Junichi | Research design|
 
 
 ## 🔗 References
