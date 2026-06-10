@@ -127,9 +127,9 @@ project/
 Each member’s contribution will be added after their tasks are completed.
 | Member | Tasks |
 |--------|-------|
-| CONG Tianxiang|  Research design; Theory development; YouTube API data extraction; advanced code review|  
-| HUANG Shuo| Research design; YouTube API data extraction; Panel data acquisition|  Visualization
-| Okamoto Junichi | Research design
+| CONG Tianxiang|  Research design; Theory development; YouTube API data extraction; Code review |
+| HUANG Shuo| Research design; YouTube API data extraction; Panel data acquisition; Visualization|
+| Okamoto Junichi | Research design|
 
 
 ## 🔗 References
