@@ -20,6 +20,18 @@ The current analysis focuses on `Value EUR` as the main sales indicator because 
 | HUANG Shuo (@huangshuojason) | Research design; YouTube API data extraction; panel data acquisition; visualization; narrative coding update |
 | Okamoto Junichi (@okamoto-junichi22-debug) | Research design |
 
+## Timeline / Milestones
+
+This milestone table follows the course project template and records how the project developed from research design to the current 14-category narrative analysis.
+
+| Milestone | Deadline / Date | Deliverable | Status |
+|-----------|-----------------|-------------|--------|
+| M1 | 5.20 | Research design; sales data acquisition; initial descriptive analysis of plant-based food sales by country, year, and product group | Completed |
+| M2 | 6.3 | YouTube API data collection; initial narrative keyword analysis; first visualizations; preliminary correlation and regression analysis | Completed |
+| M3 | 6.10 | Integrated sales and YouTube narrative analysis in the group notebook; refined research questions and interpretation of key figures | Completed |
+| M4 | 6.24 | Replaced the old dictionary-based narrative workflow with the cleaned 14-column aspect-sentiment YouTube dataset; updated notebook analysis, figures, interpretations, and README | Completed |
+| Final | TBA | Final notebook, presentation/report materials, and cleaned project repository for submission | In progress |
+
 ## Current Analysis Workflow
 
 The main notebook is:
