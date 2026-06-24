@@ -16,7 +16,7 @@ The current analysis focuses on `Value EUR` as the main sales indicator because 
 
 | Member | Main Contributions |
 |--------|--------------------|
-| CONG Tianxiang (@congtx) | Research design; theory development; YouTube API data extraction; code review |
+| CONG Tianxiang (@congtx) | Research design; theory development; YouTube API data extraction; code review; narrative coding|
 | HUANG Shuo (@huangshuojason) | Research design; YouTube API data extraction; panel data acquisition; visualization; narrative coding update |
 | Okamoto Junichi (@okamoto-junichi22-debug) | Research design |
 
