@@ -9,8 +9,8 @@ The current analysis focuses on `Value EUR` as the main sales indicator because 
 - Main RQ: How are YouTube narratives about plant-based foods associated with plant-based food sales patterns across selected European countries from 2018 to 2020?
 - Sub-RQ1: How do plant-based food sales values vary across countries, years, and product groups?
 - Sub-RQ2: How does the product-category composition of plant-based food sales differ across countries and over time?
-- Sub-RQ3: Which positive and negative YouTube narratives are most frequently mentioned across countries and years?
-- Sub-RQ4: To what extent are the fourteen YouTube narrative categories associated with total plant-based food sales value at the country-year level?
+- Sub-RQ3: Which YouTube narrative dimensions are most frequently mentioned across countries and years?
+- Sub-RQ4: To what extent are the seven combined YouTube narrative dimensions associated with total plant-based food sales value at the country-year level?
 
 ## Team Members
 
@@ -22,14 +22,14 @@ The current analysis focuses on `Value EUR` as the main sales indicator because 
 
 ## Timeline / Milestones
 
-This milestone table follows the course project template and records how the project developed from research design to the current 14-category narrative analysis.
+This milestone table follows the course project template and records how the project developed from research design to the current 7-dimension narrative analysis.
 
 | Milestone | Deadline / Date | Deliverable | Status |
 |-----------|-----------------|-------------|--------|
 | M1 | 5.20 | Research design; sales data acquisition; initial descriptive analysis of plant-based food sales by country, year, and product group | Completed |
 | M2 | 6.3 | YouTube API data collection; initial narrative keyword analysis; first visualizations; preliminary correlation and regression analysis | Completed |
 | M3 | 6.10 | Integrated sales and YouTube narrative analysis in the group notebook; refined research questions and interpretation of key figures | Completed |
-| M4 | 6.24 | Replaced the old dictionary-based narrative workflow with the cleaned 14-column aspect-sentiment YouTube dataset; updated notebook analysis, figures, interpretations, and README | Completed |
+| M4 | 6.24 | Updated the YouTube workflow to use the cleaned aspect-sentiment dataset directly; combined positive and negative labels into seven narrative dimensions; updated notebook analysis, figures, interpretations, and README | Completed |
 | Final | TBA | Final notebook, presentation/report materials, and cleaned project repository for submission | In progress |
 
 ## Current Analysis Workflow
@@ -49,14 +49,14 @@ The notebook is organized into two main parts:
 2. YouTube narrative analysis
    - Load the cleaned and aspect-coded YouTube dataset directly from `data/Clean`.
    - Filter YouTube videos to 2018-2020 to match the sales data period.
-   - Analyze fourteen narrative variables: seven dimensions split into positive and negative evaluations.
+   - Analyze seven narrative dimensions by combining each positive and negative pair into one narrative variable.
    - Show representative video titles for each narrative category.
    - Visualize narrative counts and mention rates by year and country.
    - Merge country-year narrative measures with country-year sales value.
-   - Examine correlations between narrative mention rates and log total sales value.
+   - Estimate OLS regressions between narrative mention rates and log total sales value.
    - Add short markdown interpretations after each generated figure.
 
-The notebook no longer uses the old project-created keyword dictionary or the earlier `hedonism` category. Taste is now treated directly as `taste_positive` and `taste_negative`.
+Taste is analyzed as one combined `taste` narrative created from `taste_positive` and `taste_negative`.
 
 ## Data Sources
 
@@ -69,17 +69,17 @@ The notebook no longer uses the old project-created keyword dictionary or the ea
 
 ## YouTube Narrative Variables
 
-The cleaned YouTube dataset contains fourteen binary narrative columns. A value of `1` means that either the title or description mentions that narrative category; a value of `0` means it does not.
+The cleaned YouTube dataset contains positive and negative source columns for each dimension. In the notebook, each pair is combined into one binary narrative variable. A combined value of `1` means the title or description mentions either the positive or negative version of that dimension.
 
-| Dimension | Positive Column | Negative Column | Interpretation |
-|-----------|-----------------|-----------------|----------------|
-| Health | `health_positive` | `health_negative` | Human health, nutrition, bodily benefits, disease, deficiency, or health risk |
-| Environment | `environment_positive` | `environment_negative` | Climate, sustainability, pollution, emissions, resource use, or environmental impact |
-| Animal welfare | `animal_welfare_positive` | `animal_welfare_negative` | Animal protection, cruelty-free framing, animal suffering, slaughter, or factory farming |
-| Food security | `food_security_positive` | `food_security_negative` | Feeding the world, alternative protein systems, hunger, scarcity, or famine |
-| Taste | `taste_positive` | `taste_negative` | Deliciousness, flavor, sensory appeal, bad taste, or disgust |
-| Price | `price_positive` | `price_negative` | Affordability, budget friendliness, expensive products, or price barriers |
-| Convenience | `convenience_positive` | `convenience_negative` | Ease of cooking, availability, accessibility, difficulty finding products, or time burden |
+| Combined Narrative | Source Columns | Interpretation |
+|--------------------|----------------|----------------|
+| `health` | `health_positive`, `health_negative` | Human health, nutrition, bodily benefits, disease, deficiency, or health risk |
+| `environment` | `environment_positive`, `environment_negative` | Climate, sustainability, pollution, emissions, resource use, or environmental impact |
+| `animal_welfare` | `animal_welfare_positive`, `animal_welfare_negative` | Animal protection, cruelty-free framing, animal suffering, slaughter, or factory farming |
+| `food_security` | `food_security_positive`, `food_security_negative` | Feeding the world, alternative protein systems, hunger, scarcity, or famine |
+| `taste` | `taste_positive`, `taste_negative` | Deliciousness, flavor, sensory appeal, bad taste, or disgust |
+| `price` | `price_positive`, `price_negative` | Affordability, budget friendliness, expensive products, or price barriers |
+| `convenience` | `convenience_positive`, `convenience_negative` | Ease of cooking, availability, accessibility, difficulty finding products, or time burden |
 
 ## Geographic and Time Scope
 
@@ -99,7 +99,7 @@ The project covers 11 European countries:
 
 The YouTube file contains videos from 2017-2020. The main notebook filters to 2018-2020 because the cleaned sales dataset covers 2018-2020.
 
-For the sales relationship analysis, YouTube narrative measures are aggregated to the country-year level and merged with country-year total sales value. If a country-year has no usable non-zero `Value EUR`, it is listed in the notebook as unmatched and excluded from the correlation analysis.
+For the sales relationship analysis, YouTube narrative measures are aggregated to the country-year level and merged with country-year total sales value. If a country-year has no usable non-zero `Value EUR`, it is listed in the notebook as unmatched and excluded from the sales relationship and OLS analysis.
 
 ## Key Files
 
@@ -138,9 +138,9 @@ Recommended Python packages:
 
 ## Notes
 
-- The old dictionary-based narrative workflow has been replaced by the cleaned aspect-sentiment CSV.
-- The old `hedonism` narrative has been replaced by direct taste columns: `taste_positive` and `taste_negative`.
-- The notebook emphasizes descriptive patterns and simple country-year associations. Correlations should be interpreted as exploratory relationships, not causal effects.
+- The YouTube narrative workflow uses the cleaned aspect-sentiment CSV directly.
+- Taste is analyzed as one combined `taste` narrative based on `taste_positive` and `taste_negative`.
+- The notebook emphasizes descriptive patterns and exploratory OLS regressions at the country-year level. Regression coefficients should be interpreted as associations, not causal effects.
 
 ## References
 
