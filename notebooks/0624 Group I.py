@@ -1,13 +1,13 @@
 # %% [markdown]
 # Project Summary and Research Questions
 #
-# This project examines how plant-based food markets and YouTube narratives developed across selected European countries from 2018 to 2020. It combines country-year-product sales data with YouTube video text data to compare market size, product-category composition, narrative prevalence, and the relationship between online narratives and plant-based food sales. Since sales value and volume are strongly correlated, the later analysis focuses mainly on Value EUR as the key market indicator. The YouTube analysis uses fourteen aspect-sentiment narrative variables: health, environment, animal welfare, food security, taste, price, and convenience, each split into positive and negative mentions.
+# This project examines how plant-based food markets and YouTube narratives developed across selected European countries from 2018 to 2020. It combines country-year-product sales data with YouTube video text data to compare market size, product-category composition, narrative prevalence, and the relationship between online narratives and plant-based food sales. Since sales value and volume are strongly correlated, the later analysis focuses mainly on Value EUR as the key market indicator. The YouTube analysis uses seven narrative dimensions: health, environment, animal welfare, food security, taste, price, and convenience. Positive and negative mentions are combined into one binary variable for each narrative dimension.
 #
 # - Main RQ: How are YouTube narratives about plant-based foods associated with plant-based food sales patterns across selected European countries from 2018 to 2020?
 # - Sub-RQ1: How do plant-based food sales values vary across countries, years, and product groups?
 # - Sub-RQ2: How does the product-category composition of plant-based food sales differ across countries and over time?
-# - Sub-RQ3: Which positive and negative YouTube narratives are most frequently mentioned across countries and years?
-# - Sub-RQ4: To what extent are the fourteen YouTube narrative categories associated with total plant-based food sales value at the country-year level?
+# - Sub-RQ3: Which YouTube narrative dimensions are most frequently mentioned across countries and years?
+# - Sub-RQ4: To what extent are the seven YouTube narrative dimensions associated with total plant-based food sales value at the country-year level?
 
 # %%
 import os
@@ -168,13 +168,15 @@ plt.show()
 # %% [markdown]
 # Cleaned YouTube Narrative Data
 #
-# The following section no longer re-runs the YouTube API extraction or the old keyword dictionary. Instead, it directly uses the cleaned and aspect-coded CSV in `data/Clean`. The fourteen narrative columns are the seven requested dimensions split into positive and negative evaluations. Because the sales dataset covers 2018-2020, the YouTube data is filtered to the same period before the sales relationship analysis.
+# The following section directly uses the cleaned aspect-coded CSV in `data/Clean`. The CSV contains positive and negative source columns for each narrative dimension, but this notebook combines each pair for analysis. For example, `health` equals 1 when either `health_positive` or `health_negative` is 1. This avoids double-counting videos that mention both positive and negative evaluations of the same dimension.
+#
+# Because the sales dataset covers 2018-2020, the YouTube data is filtered to the same period before the sales relationship and OLS regression analysis.
 
 # %%
 youtube_path = Path("../data/Clean/ALL_11countries_2017_2020_aspect_sentiment.csv")
 df_youtube_all = pd.read_csv(youtube_path, encoding="utf-8-sig")
 
-aspects = [
+narrative_cols = [
     "health",
     "environment",
     "animal_welfare",
@@ -183,28 +185,32 @@ aspects = [
     "price",
     "convenience",
 ]
-narrative_cols = [f"{aspect}_{sentiment}" for aspect in aspects for sentiment in ["positive", "negative"]]
+sentiment_source_cols = [f"{narrative}_{sentiment}" for narrative in narrative_cols for sentiment in ["positive", "negative"]]
 
 def format_narrative_label(column):
-    aspect, sentiment = column.rsplit("_", 1)
-    return f"{aspect.replace('_', ' ').title()} ({sentiment.title()})"
+    return column.replace("_", " ").title()
 
-narrative_meta = pd.DataFrame({"narrative": narrative_cols})
-narrative_meta["aspect"] = narrative_meta["narrative"].str.rsplit("_", n=1).str[0]
-narrative_meta["sentiment"] = narrative_meta["narrative"].str.rsplit("_", n=1).str[1]
+narrative_meta = pd.DataFrame({
+    "narrative": narrative_cols,
+    "positive_source_column": [f"{col}_positive" for col in narrative_cols],
+    "negative_source_column": [f"{col}_negative" for col in narrative_cols],
+})
 narrative_meta["label"] = narrative_meta["narrative"].apply(format_narrative_label)
 
 df_youtube = df_youtube_all.copy()
 df_youtube["Year"] = pd.to_numeric(df_youtube["year"], errors="coerce").astype("Int64")
 df_youtube["Country"] = df_youtube["country"].astype(str).str.strip()
-df_youtube[narrative_cols] = (
-    df_youtube[narrative_cols]
+df_youtube[sentiment_source_cols] = (
+    df_youtube[sentiment_source_cols]
     .apply(pd.to_numeric, errors="coerce")
     .fillna(0)
     .astype(int)
 )
-df_youtube["view_count_numeric"] = pd.to_numeric(df_youtube.get("view_count"), errors="coerce").fillna(0)
+for narrative in narrative_cols:
+    source_cols = [f"{narrative}_positive", f"{narrative}_negative"]
+    df_youtube[narrative] = df_youtube[source_cols].max(axis=1).astype(int)
 
+df_youtube["view_count_numeric"] = pd.to_numeric(df_youtube.get("view_count"), errors="coerce").fillna(0)
 df_youtube_1820 = df_youtube[df_youtube["Year"].between(2018, 2020)].copy()
 
 print("Loaded cleaned YouTube data from:", youtube_path)
@@ -238,8 +244,7 @@ example_videos = pd.DataFrame(example_rows)
 display(example_videos)
 
 # %% [markdown]
-# The example table is used as a content check for the coded categories. It shows the actual video titles behind each narrative label, rather than only aggregate counts. The positive health, taste, and convenience categories are mostly recipe, diet, and practical-use videos, while negative and food-security categories are much rarer and therefore have fewer representative examples.
-
+# The example table is used as a content check for the combined narrative categories. Each category now includes both positive and negative mentions, so the table should be interpreted as showing videos that discuss a topic, not videos that necessarily evaluate it positively. For example, the health category includes both health benefits and health risks.
 # %%
 narrative_by_year = df_youtube_1820.groupby("Year")[narrative_cols].sum()
 narrative_rate_by_year = df_youtube_1820.groupby("Year")[narrative_cols].mean().mul(100)
@@ -252,10 +257,9 @@ display(narrative_by_year)
 # %%
 plot_totals = narrative_totals.sort_values()
 plot_labels = [format_narrative_label(col) for col in plot_totals.index]
-plot_colors = ["#4C78A8" if col.endswith("_positive") else "#E45756" for col in plot_totals.index]
 
-fig, ax = plt.subplots(figsize=(10, 7))
-ax.barh(plot_labels, plot_totals.values, color=plot_colors)
+fig, ax = plt.subplots(figsize=(9, 5))
+ax.barh(plot_labels, plot_totals.values, color="#4C78A8")
 ax.set_title("Total YouTube Videos Mentioning Each Narrative, 2018-2020")
 ax.set_xlabel("Number of videos")
 ax.set_ylabel("Narrative category")
@@ -265,13 +269,12 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# Health-positive, taste-positive, and convenience-positive are the most frequently mentioned categories in the 2018-2020 YouTube data. Health-positive appears in 826 videos, taste-positive in 646, and convenience-positive in 548. Negative evaluations and food-security narratives are much less common, which suggests that the YouTube discussion is mainly framed around benefits, recipes, taste, and everyday usability rather than risks or scarcity.
-
+# After combining positive and negative mentions, health is the most frequent narrative, followed by taste and convenience. Environment, price, animal welfare, and food security appear much less often. This suggests that YouTube discussion of plant-based foods is mainly organized around personal health, eating experience, and practical use, while broader ethical or system-level narratives are less visible in the title and description text.
 # %%
 heatmap_year = narrative_rate_by_year[narrative_cols].T
 heatmap_labels = [format_narrative_label(col) for col in heatmap_year.index]
 
-fig, ax = plt.subplots(figsize=(8, 8))
+fig, ax = plt.subplots(figsize=(7, 5))
 im = ax.imshow(heatmap_year.values, aspect="auto", cmap="YlGnBu")
 ax.set_xticks(range(len(heatmap_year.columns)))
 ax.set_xticklabels(heatmap_year.columns.astype(int))
@@ -290,15 +293,14 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# The yearly heatmap shows that positive narratives dominate consistently across 2018-2020. Health-positive remains high in every year, around one quarter of all videos. Taste-positive peaks in 2019, while convenience-positive increases steadily and reaches about 20% of videos in 2020. Environmental-positive mentions become less frequent over time in this dataset, and negative categories remain small throughout.
-
+# The yearly heatmap shows that health remains the most common narrative in every year, appearing in roughly one quarter of videos. Taste is also consistently visible, while convenience increases from 2018 to 2020. Environment declines over time in this dataset, and food security remains rare. These patterns suggest that the most stable YouTube narratives are consumer-facing topics rather than abstract system-level topics.
 # %%
 country_order = narrative_rate_by_country.mean(axis=1).sort_values(ascending=False).index
 heatmap_country = narrative_rate_by_country.loc[country_order, narrative_cols]
 country_labels = heatmap_country.index.tolist()
 column_labels = [format_narrative_label(col) for col in heatmap_country.columns]
 
-fig, ax = plt.subplots(figsize=(14, 6))
+fig, ax = plt.subplots(figsize=(10, 6))
 im = ax.imshow(heatmap_country.values, aspect="auto", cmap="YlGnBu")
 ax.set_xticks(range(len(column_labels)))
 ax.set_xticklabels(column_labels, rotation=45, ha="right")
@@ -317,8 +319,7 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# The country heatmap shows that the same broad pattern appears across many markets: health-positive, taste-positive, and convenience-positive are the most visible narratives, while negative categories are sparse. Belgium has the highest health-positive mention rate, the United Kingdom and Belgium are especially strong for taste-positive content, and Spain stands out for convenience-positive content. This suggests that country differences are mostly differences in emphasis rather than completely different narrative structures.
-
+# The country heatmap shows that health, taste, and convenience are the main narrative dimensions across most countries, but the emphasis differs by market. Some countries show stronger health framing, while others show more taste or convenience framing. This suggests that plant-based food communication is broadly similar across countries, but local markets differ in which consumer-facing narrative receives more attention.
 # %%
 sales_path = Path("../data/Clean/plant_based_food_sales_data.csv")
 sales_raw_for_merge = pd.read_csv(sales_path)
@@ -368,7 +369,6 @@ display(narrative_sales_country_year.head())
 
 # %% [markdown]
 # For the sales relationship analysis, YouTube narratives are aggregated to the country-year level and merged with total sales value. This keeps the sales analysis aligned with the 2018-2020 period. The merge uses non-zero `Value EUR`; therefore Germany is listed as unmatched because the clean sales file does not contain usable non-zero sales value for Germany in these years. The YouTube-only narrative charts above still include Germany.
-
 # %%
 rate_cols = [f"{col}_rate" for col in narrative_cols]
 
@@ -379,14 +379,14 @@ corr_table = pd.DataFrame({
         for col in narrative_cols
     ],
 })
-corr_table = corr_table.merge(narrative_meta[["narrative", "label", "sentiment"]], on="narrative", how="left")
+corr_table = corr_table.merge(narrative_meta[["narrative", "label"]], on="narrative", how="left")
 corr_table = corr_table.sort_values("corr_with_log_total_value", ascending=False)
 display(corr_table[["label", "corr_with_log_total_value"]])
 
 plot_corr = corr_table.sort_values("corr_with_log_total_value")
 colors = ["#4C78A8" if value >= 0 else "#E45756" for value in plot_corr["corr_with_log_total_value"]]
 
-fig, ax = plt.subplots(figsize=(10, 7))
+fig, ax = plt.subplots(figsize=(9, 5))
 ax.barh(plot_corr["label"], plot_corr["corr_with_log_total_value"], color=colors)
 ax.axvline(0, color="black", linewidth=1)
 ax.set_title("Correlation Between Narrative Mention Rate and Log Sales Value")
@@ -396,67 +396,13 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# The correlation chart compares each narrative's country-year mention rate with log total plant-based food sales value. Taste-positive and price-positive show the strongest positive correlations, both around 0.44, followed by convenience-positive. Health-positive is positive but weaker. Taste-negative and food-security-positive are negatively correlated with sales value in this dataset. These are associations, not causal effects, but they suggest that consumer-facing benefits such as taste, affordability, and convenience are more closely aligned with larger sales markets than rare or problem-focused narratives.
-
-# %%
-simple_relationships = []
-for narrative in narrative_cols:
-    rate_col = f"{narrative}_rate"
-    x = narrative_sales_country_year[rate_col].astype(float)
-    y = narrative_sales_country_year["log_total_value"].astype(float)
-    if x.nunique() > 1:
-        slope, intercept = np.polyfit(x, y, 1)
-        y_hat = slope * x + intercept
-        ss_res = ((y - y_hat) ** 2).sum()
-        ss_tot = ((y - y.mean()) ** 2).sum()
-        r_squared = 1 - ss_res / ss_tot if ss_tot != 0 else np.nan
-    else:
-        slope = np.nan
-        r_squared = np.nan
-    simple_relationships.append({
-        "narrative": narrative,
-        "label": format_narrative_label(narrative),
-        "slope_per_10pp_rate_increase": slope * 0.10,
-        "r_squared": r_squared,
-    })
-
-simple_relationships = (
-    pd.DataFrame(simple_relationships)
-    .sort_values("r_squared", ascending=False)
-    .reset_index(drop=True)
-)
-display(simple_relationships)
-
-top_scatter = corr_table.assign(abs_corr=corr_table["corr_with_log_total_value"].abs()).head(0)
-top_scatter = corr_table.assign(abs_corr=corr_table["corr_with_log_total_value"].abs()).sort_values("abs_corr", ascending=False).head(4)
-
-fig, axes = plt.subplots(2, 2, figsize=(11, 8))
-axes = axes.flatten()
-for ax, (_, row) in zip(axes, top_scatter.iterrows()):
-    narrative = row["narrative"]
-    rate_col = f"{narrative}_rate"
-    x = narrative_sales_country_year[rate_col] * 100
-    y = narrative_sales_country_year["log_total_value"]
-    ax.scatter(x, y, alpha=0.75)
-    if x.nunique() > 1:
-        slope, intercept = np.polyfit(x, y, 1)
-        x_line = np.linspace(x.min(), x.max(), 100)
-        ax.plot(x_line, slope * x_line + intercept, color="red")
-    ax.set_title(row["label"])
-    ax.set_xlabel("Mention rate (% of videos)")
-    ax.set_ylabel("Log Total Value EUR")
-plt.tight_layout()
-plt.show()
-
-# %% [markdown]
-# The bivariate slope table and scatter plots give a more direct view of the strongest simple relationships. Taste-positive and price-positive have the highest simple explanatory power, but their R-squared values remain below 0.20. This means narrative mention rates are related to sales value, but they explain only part of the difference across countries and years. Market size, product availability, retail structure, and country-level demand are still important background factors.
-
+# The correlation chart is useful as an exploratory first look, but it does not control for overlap between narratives. Therefore, the final analysis uses OLS regression, following the method introduced in class. Before fitting the OLS model, the next heatmap checks how strongly the seven narrative variables are correlated with each other.
 # %%
 rate_corr = narrative_sales_country_year[rate_cols].corr()
 rate_corr.index = [format_narrative_label(col.replace("_rate", "")) for col in rate_corr.index]
 rate_corr.columns = [format_narrative_label(col.replace("_rate", "")) for col in rate_corr.columns]
 
-fig, ax = plt.subplots(figsize=(11, 9))
+fig, ax = plt.subplots(figsize=(7, 6))
 im = ax.imshow(rate_corr.values, cmap="coolwarm", vmin=-1, vmax=1)
 ax.set_xticks(range(len(rate_corr.columns)))
 ax.set_xticklabels(rate_corr.columns, rotation=45, ha="right")
@@ -467,13 +413,85 @@ ax.set_title("Correlation Among Narrative Mention Rates")
 for row_i in range(rate_corr.shape[0]):
     for col_i in range(rate_corr.shape[1]):
         value = rate_corr.iloc[row_i, col_i]
-        if abs(value) >= 0.5 or row_i == col_i:
-            ax.text(col_i, row_i, f"{value:.2f}", ha="center", va="center", fontsize=7)
+        ax.text(col_i, row_i, f"{value:.2f}", ha="center", va="center", fontsize=8)
 
 fig.colorbar(im, ax=ax, label="Correlation")
 plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# The narrative-correlation heatmap shows that the fourteen categories are not fully independent. Some positive consumer-facing narratives tend to appear in the same country-year contexts, and several rare negative categories are sparse. This matters for interpretation: a strong correlation with sales may reflect a broader communication environment rather than the isolated effect of one narrative. For this reason, the notebook emphasizes descriptive patterns and simple associations instead of treating the fourteen narrative variables as independent causal predictors.
+# The heatmap shows whether the seven narrative rates tend to appear together in the same country-year contexts. This matters for OLS interpretation because a coefficient estimates the association of one narrative while holding the other included narratives constant. If two narrative variables overlap strongly, their individual coefficients may become less stable.
+# %%
+# OLS regression: combined narrative mention rates and plant-based food sales
+# The dependent variable is log(Total Value EUR).
+# Each explanatory variable is the share of videos in a country-year that mention a narrative dimension.
 
+regression_data = narrative_sales_country_year[
+    ["Country", "Year", "Total Value EUR", "log_total_value", "video_count"] + rate_cols
+].dropna().copy()
+
+combined_narrative_ols_model = fit_ols(regression_data, rate_cols, "log_total_value")
+
+ols_model_summary = pd.DataFrame([{
+    "model": "Combined 7-narrative OLS",
+    "n_observations": int(combined_narrative_ols_model.nobs),
+    "n_predictors": len(rate_cols),
+    "r_squared": combined_narrative_ols_model.rsquared,
+    "adjusted_r_squared": combined_narrative_ols_model.rsquared_adj,
+    "f_pvalue": combined_narrative_ols_model.f_pvalue,
+}])
+display(ols_model_summary)
+
+conf_int = combined_narrative_ols_model.conf_int().loc[rate_cols]
+ols_coefficients = pd.DataFrame({
+    "variable": rate_cols,
+    "coefficient": combined_narrative_ols_model.params.loc[rate_cols],
+    "p_value": combined_narrative_ols_model.pvalues.loc[rate_cols],
+    "conf_low": conf_int[0],
+    "conf_high": conf_int[1],
+}).reset_index(drop=True)
+ols_coefficients["narrative"] = ols_coefficients["variable"].str.replace("_rate", "", regex=False)
+ols_coefficients["label"] = ols_coefficients["narrative"].apply(format_narrative_label)
+ols_coefficients["coefficient_per_10pp_increase"] = ols_coefficients["coefficient"] * 0.10
+ols_coefficients["conf_low_per_10pp"] = ols_coefficients["conf_low"] * 0.10
+ols_coefficients["conf_high_per_10pp"] = ols_coefficients["conf_high"] * 0.10
+
+display(ols_coefficients[[
+    "label",
+    "coefficient_per_10pp_increase",
+    "p_value",
+    "conf_low_per_10pp",
+    "conf_high_per_10pp",
+]].sort_values("coefficient_per_10pp_increase", ascending=False))
+
+print("Combined 7-narrative OLS summary")
+print(combined_narrative_ols_model.summary())
+
+# %% [markdown]
+# The OLS model estimates the association between the seven combined narrative mention rates and log sales value at the country-year level. Each coefficient shows the expected change in log sales value when a narrative's mention rate increases by 10 percentage points, holding the other six narrative rates constant. This regression goes beyond simple correlation because it controls for overlap between narrative dimensions. However, the results should still be interpreted as exploratory associations rather than causal effects because the sample is small and country-level market differences may also matter.
+# %%
+plot_coefficients = ols_coefficients.sort_values("coefficient_per_10pp_increase")
+y_positions = np.arange(len(plot_coefficients))
+lower_error = plot_coefficients["coefficient_per_10pp_increase"] - plot_coefficients["conf_low_per_10pp"]
+upper_error = plot_coefficients["conf_high_per_10pp"] - plot_coefficients["coefficient_per_10pp_increase"]
+
+fig, ax = plt.subplots(figsize=(9, 5))
+ax.errorbar(
+    plot_coefficients["coefficient_per_10pp_increase"],
+    y_positions,
+    xerr=[lower_error, upper_error],
+    fmt="o",
+    color="#4C78A8",
+    ecolor="gray",
+    capsize=3,
+)
+ax.axvline(0, color="black", linewidth=1)
+ax.set_yticks(y_positions)
+ax.set_yticklabels(plot_coefficients["label"])
+ax.set_xlabel("OLS coefficient per 10 percentage point increase in mention rate")
+ax.set_title("OLS Coefficients: Narrative Mention Rates and Log Sales Value")
+plt.tight_layout()
+plt.show()
+
+# %% [markdown]
+# The coefficient plot visualizes the OLS regression results for the seven combined narratives. Points to the right of zero indicate narratives that are positively associated with log sales value after controlling for the other narratives; points to the left indicate negative associations. Wide confidence intervals would indicate uncertainty, so the direction, size, and statistical significance of each coefficient should be discussed together rather than relying only on the visual position of the point.
