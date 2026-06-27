@@ -36,7 +36,7 @@ This milestone table follows the course project template and records how the pro
 
 The main notebook is:
 
-- `notebooks/0624 Group I.ipynb`
+- `notebooks/0627 Group I.ipynb`
 
 The notebook is organized into two main parts:
 
@@ -56,30 +56,35 @@ The notebook is organized into two main parts:
    - Estimate OLS regressions between narrative mention rates and log total sales value.
    - Add short markdown interpretations after each generated figure.
 
-Taste is analyzed as one combined `taste` narrative created from `taste_positive` and `taste_negative`.
+The YouTube narrative analysis now uses direct 0/1 theme columns coded from video titles and descriptions.
 
 ## Data Sources
 
 | Dataset | File / Source | Description |
 |---------|---------------|-------------|
-| Cleaned YouTube narrative data | `data/Clean/ALL_11countries_2017_2020_aspect_sentiment.csv` | YouTube video metadata and title/description narrative labels for 11 European countries. The raw video collection covers 2017-2020, while the notebook filters to 2018-2020 for the main analysis. |
+| Cleaned YouTube narrative data | `data/Clean/ALL_11countries_2017_2020_aspect_sentiment_narrative_coded.csv` | YouTube video metadata with title/description-based 0/1 narrative theme columns for 11 European countries. The raw video collection covers 2017-2020, while the notebook filters to 2018-2020 for the main analysis. |
+| YouTube narrative codebook | `data/Clean/narrative_coding_codebook.csv` | Codebook for the narrative themes, including each theme's description, video counts, and most frequent matched expressions used in the text-size figures. |
 | Cleaned plant-based sales data | `data/Clean/plant_based_food_sales_data.csv` | Plant-based food sales data by country, year, and product group. Key variables include `Country`, `Year`, `Product Group`, `Value EUR`, and `Volume kg/l`. |
 | YouTube Data API | https://developers.google.com/youtube/v3 | Used earlier in the project to collect YouTube video metadata such as title, description, upload date, channel information, views, likes, and comments. The current notebook does not re-run the API extraction. |
 | European plant-based foods sales data | https://zenodo.org/records/6411841 | Source for the plant-based food panel sales dataset. |
 
 ## YouTube Narrative Variables
 
-The cleaned YouTube dataset contains positive and negative source columns for each dimension. In the notebook, each pair is combined into one binary narrative variable. A combined value of `1` means the title or description mentions either the positive or negative version of that dimension.
+The cleaned YouTube dataset contains one binary column for each narrative theme. A value of `1` means the title or description matched at least one expression for that theme.
 
-| Combined Narrative | Source Columns | Interpretation |
-|--------------------|----------------|----------------|
-| `health` | `health_positive`, `health_negative` | Human health, nutrition, bodily benefits, disease, deficiency, or health risk |
-| `environment` | `environment_positive`, `environment_negative` | Climate, sustainability, pollution, emissions, resource use, or environmental impact |
-| `animal_welfare` | `animal_welfare_positive`, `animal_welfare_negative` | Animal protection, cruelty-free framing, animal suffering, slaughter, or factory farming |
-| `food_security` | `food_security_positive`, `food_security_negative` | Feeding the world, alternative protein systems, hunger, scarcity, or famine |
-| `taste` | `taste_positive`, `taste_negative` | Deliciousness, flavor, sensory appeal, bad taste, or disgust |
-| `price` | `price_positive`, `price_negative` | Affordability, budget friendliness, expensive products, or price barriers |
-| `convenience` | `convenience_positive`, `convenience_negative` | Ease of cooking, availability, accessibility, difficulty finding products, or time burden |
+| Narrative Theme | Interpretation |
+|-----------------|----------------|
+| `health` | Health, nutrition, nutrients, dietary restrictions, or disease prevention framing |
+| `environment` | Environment, climate, sustainability, zero-waste, emissions, or eco-friendly framing |
+| `taste` | Taste, flavor, deliciousness, cravings, taste tests, or negative taste reactions |
+| `animal_ethics` | Animal welfare, animal rights, cruelty-free, slaughter, compassion, or ethics framing |
+| `recipe_cooking` | Recipes, cooking, baking, ingredients, meals, dishes, or homemade preparation |
+| `convenience_easy` | Ease, speed, beginner-friendliness, meal prep, one-pot/no-bake, or time-saving framing |
+| `fitness_weight` | Fitness, sport, bodybuilding, muscle, calories/macros, transformation, or weight loss |
+| `challenge_transition` | Trying veganism, going vegan, beginner guides, first-time videos, or vegan challenges |
+| `product_review_alternatives` | Plant-based substitutes, dairy/meat alternatives, brand/product reviews, hauls, or taste tests |
+| `budget_shopping` | Budget, price, grocery shopping, supermarkets, discount retailers, or affordability |
+| `restaurant_travel` | Restaurants, cafes, vegan options while traveling, city guides, vlogs, or eating out |
 
 ## Geographic and Time Scope
 
@@ -106,14 +111,16 @@ For the sales relationship analysis, YouTube narrative measures are aggregated t
 ```text
 data/
   Clean/
-    ALL_11countries_2017_2020_aspect_sentiment.csv
+    ALL_11countries_2017_2020_aspect_sentiment_narrative_coded.csv
+    narrative_coding_codebook.csv
     plant_based_food_sales_data.csv
   Raw/
     youtube_plant_based_*.csv
     youtube_plant_based_*.json
 
 notebooks/
-  0624 Group I.ipynb
+  0627 Group I.ipynb
+  0627 Group I.py
   0624 Group I.py
 
 src/
@@ -123,7 +130,7 @@ src/
 
 ## How to Run
 
-1. Open `notebooks/0624 Group I.ipynb`.
+1. Open `notebooks/0627 Group I.ipynb`.
 2. Run the notebook from top to bottom.
 3. The notebook reads cleaned datasets from `data/Clean`.
 4. The YouTube API extraction is not required for the current analysis.
