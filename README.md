@@ -1,42 +1,45 @@
 # Plant-Based Food Sales and YouTube Narratives in Europe
 
-This project explores how plant-based food markets and YouTube narratives developed across selected European countries from 2018 to 2020. It combines country-year sales data with YouTube video metadata and text-based narrative labels to compare market size, product-category composition, narrative prevalence, and the relationship between online narratives and plant-based food sales.
+This project examines how plant-based food markets and YouTube narratives developed across selected European countries from 2018 to 2020. It combines country-year-product sales data with YouTube video metadata and title/description-based narrative coding to compare market size, product-category composition, narrative prevalence, and the relationship between online narratives and plant-based food sales.
 
 The current analysis focuses on `Value EUR` as the main sales indicator because sales value and sales volume are strongly correlated in the cleaned sales dataset.
 
 ## Research Questions
 
-- Main RQ: How are YouTube narratives about plant-based foods associated with plant-based food sales patterns across selected European countries from 2018 to 2020?
-- Sub-RQ1: How do plant-based food sales values vary across countries, years, and product groups?
-- Sub-RQ2: How does the product-category composition of plant-based food sales differ across countries and over time?
-- Sub-RQ3: Which YouTube narrative dimensions are most frequently mentioned across countries and years?
-- Sub-RQ4: To what extent are the seven combined YouTube narrative dimensions associated with total plant-based food sales value at the country-year level?
+- Main RQ: How were YouTube narratives about plant-based foods associated with sales patterns across selected European countries from 2018 to 2020?
+- Sub-RQ1: How did plant-based food sales vary across countries and years?
+- Sub-RQ2: Which YouTube narrative themes were most frequently mentioned across countries and years?
+- Sub-RQ3: How were coded YouTube narrative mention rates associated with total plant-based food sales value at the country-year level?
 
 ## Team Members
 
 | Member | Main Contributions |
 |--------|--------------------|
-| CONG Tianxiang (@congtx) | Research design; theory development; YouTube API data extraction; code review; narrative coding|
+| CONG Tianxiang (@congtx) | Research design; theory development; YouTube API data extraction; code review; narrative coding |
 | HUANG Shuo (@huangshuojason) | Research design; YouTube API data extraction; panel data acquisition; visualization; narrative coding update |
 | Okamoto Junichi (@okamoto-junichi22-debug) | Research design; code review |
 
 ## Timeline / Milestones
 
-This milestone table follows the course project template and records how the project developed from research design to the current 7-dimension narrative analysis.
+This milestone table follows the course project template and records how the project developed from research design to the final 11-theme YouTube narrative analysis.
 
 | Milestone | Deadline / Date | Deliverable | Status |
 |-----------|-----------------|-------------|--------|
 | M1 | 5.20 | Research design; sales data acquisition; initial descriptive analysis of plant-based food sales by country, year, and product group | Completed |
 | M2 | 6.3 | YouTube API data collection; initial narrative keyword analysis; first visualizations; preliminary correlation and regression analysis | Completed |
 | M3 | 6.10 | Integrated sales and YouTube narrative analysis in the group notebook; refined research questions and interpretation of key figures | Completed |
-| M4 | 6.24 | Updated the YouTube workflow to use the cleaned aspect-sentiment dataset directly; combined positive and negative labels into seven narrative dimensions; updated notebook analysis, figures, interpretations, and README | Completed |
-| Final | TBA | Final notebook, presentation/report materials, and cleaned project repository for submission | In progress |
+| M4 | 6.24 | Updated the YouTube workflow to use the cleaned aspect-sentiment dataset directly; updated title/description-based narrative coding; updated notebook analysis, figures, interpretations, and README | Completed |
+| Final | 2026/07/01 | Final notebook completed; YouTube video completed; presentation materials submitted; cleaned project repository prepared for submission | Completed |
 
 ## Current Analysis Workflow
 
 The main notebook is:
 
-- `notebooks/0627 Group I.ipynb`
+- `notebooks/Group I_Final.ipynb`
+
+The matching Python percent-format script is:
+
+- `notebooks/Group I_Final.py`
 
 The notebook is organized into two main parts:
 
@@ -47,14 +50,14 @@ The notebook is organized into two main parts:
    - Examine product-category composition using share plots.
 
 2. YouTube narrative analysis
-   - Load the cleaned and aspect-coded YouTube dataset directly from `data/Clean`.
+   - Load the cleaned and narrative-coded YouTube dataset directly from `data/Clean`.
    - Filter YouTube videos to 2018-2020 to match the sales data period.
-   - Analyze seven narrative dimensions by combining each positive and negative pair into one narrative variable.
-   - Show representative video titles for each narrative category.
-   - Visualize narrative counts and mention rates by year and country.
+   - Analyze eleven direct 0/1 narrative theme columns coded from video titles and descriptions.
+   - Summarize narrative mention rates and codebook expressions.
+   - Visualize narrative prevalence by theme and year.
    - Merge country-year narrative measures with country-year sales value.
-   - Estimate OLS regressions between narrative mention rates and log total sales value.
-   - Add short markdown interpretations after each generated figure.
+   - Estimate exploratory OLS regressions between narrative mention rates and log total sales value.
+   - Add markdown interpretations and key takeaways for each generated figure.
 
 The YouTube narrative analysis now uses direct 0/1 theme columns coded from video titles and descriptions.
 
@@ -115,22 +118,20 @@ data/
     narrative_coding_codebook.csv
     plant_based_food_sales_data.csv
   Raw/
-    youtube_plant_based_*.csv
-    youtube_plant_based_*.json
+    archived source and intermediate YouTube extraction outputs
 
 notebooks/
-  0627 Group I.ipynb
-  0627 Group I.py
-  0624 Group I.py
+  Group I_Final.ipynb
+  Group I_Final.py
 
 src/
   analysis_helpers.py
-  youtube_plant_based_uk_extractor.py
+  youtube_analysis_helpers.py
 ```
 
 ## How to Run
 
-1. Open `notebooks/0627 Group I.ipynb`.
+1. Open `notebooks/Group I_Final.ipynb`.
 2. Run the notebook from top to bottom.
 3. The notebook reads cleaned datasets from `data/Clean`.
 4. The YouTube API extraction is not required for the current analysis.
@@ -146,7 +147,9 @@ Recommended Python packages:
 ## Notes
 
 - The YouTube narrative workflow uses the cleaned aspect-sentiment CSV directly.
-- Taste is analyzed as one combined `taste` narrative based on `taste_positive` and `taste_negative`.
+- The current notebook analyzes eleven title/description-coded narrative themes as direct 0/1 mention variables.
+- The notebook includes markdown interpretations and key takeaways after each main generated figure.
+- The eleven codebook theme-expression figures share one markdown explanation immediately before the group of figures.
 - The notebook emphasizes descriptive patterns and exploratory OLS regressions at the country-year level. Regression coefficients should be interpreted as associations, not causal effects.
 
 ## References
