@@ -146,8 +146,6 @@ Recommended Python packages:
 
 - The YouTube narrative workflow uses the cleaned aspect-sentiment CSV directly.
 - The current notebook analyzes eleven title/description-coded narrative themes as direct 0/1 mention variables.
-- The notebook includes markdown interpretations and key takeaways after each main generated figure.
-- The eleven codebook theme-expression figures share one markdown explanation immediately before the group of figures.
 - The notebook emphasizes descriptive patterns and exploratory OLS regressions at the country-year level. Regression coefficients should be interpreted as associations, not causal effects.
 
 ## References
