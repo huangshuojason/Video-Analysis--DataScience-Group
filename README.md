@@ -4,6 +4,9 @@ This project examines how plant-based food markets and YouTube narratives develo
 
 The current analysis focuses on `Value EUR` as the main sales indicator because sales value and sales volume are strongly correlated in the cleaned sales dataset.
 
+## Final presentation
+https://youtu.be/f_vWz5yEDJ0
+
 ## Research Questions
 
 - Main RQ: How were YouTube narratives about plant-based foods associated with sales patterns across selected European countries from 2018 to 2020?
