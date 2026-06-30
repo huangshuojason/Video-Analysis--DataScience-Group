@@ -7,6 +7,7 @@
 # - Sub-RQ1: How did plant-based food sales vary across countries and years?
 # - Sub-RQ2: Which YouTube narrative themes were most frequently mentioned across countries and years?
 # - Sub-RQ3: How were coded YouTube narrative mention rates associated with total plant-based food sales value at the country-year level?
+# YouTube video (Final presentation): https://youtu.be/f_vWz5yEDJ0
 
 # %%
 import os
