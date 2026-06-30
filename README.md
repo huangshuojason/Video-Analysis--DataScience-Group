@@ -106,6 +106,8 @@ The project covers 9 European countries:
 - Spain
 - United Kingdom
 
+The original cleaned YouTube narrative file covers 11 European countries. Poland and Germany are not listed in the final geographic scope because the final sales-narrative analysis requires country-year observations to be matched with usable non-zero `Value EUR` sales data for 2018-2020. These two countries were excluded at the merge stage due to missing or unusable matching sales observations, not because the YouTube narrative data were absent. Therefore, the final results should be read as a 9-country matched sales-and-YouTube sample rather than the full 11-country YouTube collection.
+
 The YouTube file contains videos from 2017-2020. The main notebook filters to 2018-2020 because the cleaned sales dataset covers 2018-2020.
 
 For the sales relationship analysis, YouTube narrative measures are aggregated to the country-year level and merged with country-year total sales value. If a country-year has no usable non-zero `Value EUR`, it is listed in the notebook as unmatched and excluded from the sales relationship and OLS analysis.
