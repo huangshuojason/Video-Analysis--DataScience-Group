@@ -65,7 +65,7 @@ The YouTube narrative analysis now uses direct 0/1 theme columns coded from vide
 
 | Dataset | File / Source | Description |
 |---------|---------------|-------------|
-| Cleaned YouTube narrative data | `data/Clean/ALL_11countries_2017_2020_aspect_sentiment_narrative_coded.csv` | YouTube video metadata with title/description-based 0/1 narrative theme columns for 11 European countries. The raw video collection covers 2017-2020, while the notebook filters to 2018-2020 for the main analysis. |
+| Cleaned YouTube narrative data | `data/Clean/ALL_11countries_2018_2020_aspect_sentiment_narrative_coded.csv` | YouTube video metadata with title/description-based 0/1 narrative theme columns for 11 European countries. The raw video collection covers 2017-2020, while the notebook filters to 2018-2020 for the main analysis. |
 | YouTube narrative codebook | `data/Clean/narrative_coding_codebook.csv` | Codebook for the narrative themes, including each theme's description, video counts, and most frequent matched expressions used in the text-size figures. |
 | Cleaned plant-based sales data | `data/Clean/plant_based_food_sales_data.csv` | Plant-based food sales data by country, year, and product group. Key variables include `Country`, `Year`, `Product Group`, `Value EUR`, and `Volume kg/l`. |
 | YouTube Data API | https://developers.google.com/youtube/v3 | Used earlier in the project to collect YouTube video metadata such as title, description, upload date, channel information, views, likes, and comments. The current notebook does not re-run the API extraction. |
@@ -91,16 +91,14 @@ The cleaned YouTube dataset contains one binary column for each narrative theme.
 
 ## Geographic and Time Scope
 
-The project covers 11 European countries:
+The project covers 9 European countries:
 
 - Austria
 - Belgium
 - Denmark
 - France
-- Germany
 - Italy
 - Netherlands
-- Poland
 - Romania
 - Spain
 - United Kingdom
@@ -114,7 +112,7 @@ For the sales relationship analysis, YouTube narrative measures are aggregated t
 ```text
 data/
   Clean/
-    ALL_11countries_2017_2020_aspect_sentiment_narrative_coded.csv
+    ALL_11countries_2018_2020_aspect_sentiment_narrative_coded.csv
     narrative_coding_codebook.csv
     plant_based_food_sales_data.csv
   Raw/
