@@ -70,7 +70,7 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 # =============================================================================
 # 0. PASTE YOUR API KEY HERE (between the quotes), or use the env var.
 # =============================================================================
-YOUTUBE_API_KEY = ""   # e.g. "AIzaSyB1234567890abcdefghijklmnop"
+YOUTUBE_API_KEY = ""   # e.g. "xxxxxxxxxxxxxxx (please use your own YouTube API Key)"
 
 
 # =============================================================================
