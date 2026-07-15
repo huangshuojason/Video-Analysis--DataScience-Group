@@ -421,3 +421,516 @@ plt.show()
 
 # %% [markdown]
 # This coefficient plot shows the best adjusted R-squared theme-only OLS model selected from the coded YouTube narrative rates. The selected themes are taste, challenge/transition, and budget/shopping, and all three coefficients are positive. This means that country-year markets with more content about taste, beginner-friendly transition, and affordable shopping tend to have higher plant-based food sales value, after considering these selected themes together. Because the sample is small and observational, the result should be read as an exploratory association rather than proof of causality. Key takeaway: the strongest model points toward practical adoption messaging: plant-based food should be presented as tasty, easy to start, and financially accessible.
+
+# %% [markdown]
+# ## Population-Scaled Sales Adjustment (Group B Feedback)
+#
+# Following today's discussion and Group B's suggestion, this added section scales the sales data by national population before repeating the narrative-sales correlation check. The original sales analysis above is kept unchanged because total sales still measure market size. This adjustment adds a second view: sales intensity per person.
+#
+# Population data are pulled from the World Bank API using the World Development Indicators population series `SP.POP.TOTL` for 2018-2020.
+
+# %%
+import json
+import time
+import urllib.request
+
+WORLD_BANK_POPULATION_INDICATOR = "SP.POP.TOTL"
+WORLD_BANK_POPULATION_SOURCE = "World Bank, World Development Indicators, SP.POP.TOTL"
+WORLD_BANK_COUNTRY_CODES = {
+    "Austria": "AUT",
+    "Belgium": "BEL",
+    "Denmark": "DNK",
+    "France": "FRA",
+    "Germany": "DEU",
+    "Italy": "ITA",
+    "Netherlands": "NLD",
+    "Poland": "POL",
+    "Romania": "ROU",
+    "Spain": "ESP",
+    "United Kingdom": "GBR",
+}
+
+
+def fetch_world_bank_population(country_code_map, start_year=2018, end_year=2020):
+    """Fetch country-year population from the World Bank API."""
+    iso_to_country = {iso: country for country, iso in country_code_map.items()}
+    country_code_path = ";".join(sorted(iso_to_country))
+    url = (
+        "https://api.worldbank.org/v2/country/"
+        f"{country_code_path}/indicator/{WORLD_BANK_POPULATION_INDICATOR}"
+        f"?format=json&date={start_year}:{end_year}&per_page=1000"
+    )
+
+    request = urllib.request.Request(
+        url,
+        headers={"User-Agent": "group-i-population-scaling-analysis"},
+    )
+    last_error = None
+    for attempt in range(1, 4):
+        try:
+            with urllib.request.urlopen(request, timeout=45) as response:
+                payload = json.load(response)
+            break
+        except Exception as error:
+            last_error = error
+            if attempt == 3:
+                raise RuntimeError(
+                    "World Bank population API request failed after 3 attempts. "
+                    "Re-run this cell with internet access."
+                ) from last_error
+            print(f"World Bank API attempt {attempt} failed; retrying...")
+            time.sleep(2)
+
+    if not isinstance(payload, list) or len(payload) < 2 or payload[1] is None:
+        raise RuntimeError("World Bank API did not return the expected population payload.")
+
+    rows = []
+    for item in payload[1]:
+        iso_code = item.get("countryiso3code")
+        population = item.get("value")
+        if iso_code in iso_to_country and population is not None:
+            rows.append(
+                {
+                    "Country": iso_to_country[iso_code],
+                    "Year": int(item["date"]),
+                    "iso3_code": iso_code,
+                    "population": population,
+                    "population_source": WORLD_BANK_POPULATION_SOURCE,
+                }
+            )
+
+    if not rows:
+        raise RuntimeError("World Bank API returned no usable population rows.")
+
+    population_df = pd.DataFrame(rows)
+    expected = pd.MultiIndex.from_product(
+        [sorted(country_code_map), range(start_year, end_year + 1)],
+        names=["Country", "Year"],
+    ).to_frame(index=False)
+
+    population_df = expected.merge(population_df, on=["Country", "Year"], how="left")
+    population_df["population"] = pd.to_numeric(
+        population_df["population"], errors="coerce"
+    ).astype("Int64")
+    return population_df, url
+# %%
+sales_countries_for_population = sorted(sales_country_year_for_merge["Country"].unique())
+missing_country_codes = sorted(
+    set(sales_countries_for_population) - set(WORLD_BANK_COUNTRY_CODES)
+)
+if missing_country_codes:
+    raise KeyError(f"Missing World Bank ISO3 codes for: {missing_country_codes}")
+
+population_country_year, world_bank_population_url = fetch_world_bank_population(
+    {
+        country: WORLD_BANK_COUNTRY_CODES[country]
+        for country in sales_countries_for_population
+    },
+    start_year=2018,
+    end_year=2020,
+)
+
+print("World Bank population API:", world_bank_population_url)
+display(population_country_year.sort_values(["Country", "Year"]))
+
+missing_population_rows = population_country_year[
+    population_country_year["population"].isna()
+]
+if len(missing_population_rows):
+    print("Missing population rows:")
+    display(missing_population_rows)
+
+# %%
+population_scaled_sales = narrative_sales_country_year.merge(
+    population_country_year[["Country", "Year", "population"]],
+    on=["Country", "Year"],
+    how="left",
+)
+population_scaled_sales = population_scaled_sales.dropna(subset=["population"]).copy()
+population_scaled_sales["population"] = pd.to_numeric(
+    population_scaled_sales["population"], errors="coerce"
+)
+population_scaled_sales["value_per_capita_eur"] = (
+    population_scaled_sales["Total Value EUR"] / population_scaled_sales["population"]
+)
+population_scaled_sales["value_per_100k_people_eur"] = (
+    population_scaled_sales["value_per_capita_eur"] * 100_000
+)
+population_scaled_sales["log_value_per_capita"] = np.log(
+    population_scaled_sales["value_per_capita_eur"]
+)
+
+display(
+    population_scaled_sales[
+        [
+            "Country",
+            "Year",
+            "Total Value EUR",
+            "population",
+            "value_per_capita_eur",
+            "value_per_100k_people_eur",
+            "log_value_per_capita",
+        ]
+    ]
+    .sort_values(["Country", "Year"])
+    .round(
+        {
+            "Total Value EUR": 0,
+            "value_per_capita_eur": 2,
+            "value_per_100k_people_eur": 0,
+            "log_value_per_capita": 3,
+        }
+    )
+)
+
+# %%
+country_per_capita_sales = (
+    population_scaled_sales
+    .groupby("Country")["value_per_capita_eur"]
+    .mean()
+    .sort_values(ascending=False)
+)
+
+fig, ax = plt.subplots(figsize=(10, 5))
+ax.bar(country_per_capita_sales.index, country_per_capita_sales.values, color="#54A24B")
+ax.set_title("Average Plant-Based Food Sales per Capita, 2018-2020")
+ax.set_xlabel("Country")
+ax.set_ylabel("Mean sales value per person (EUR)")
+ax.tick_params(axis="x", rotation=45)
+plt.tight_layout()
+plt.show()
+
+# %%
+population_scaled_corr_table = pd.DataFrame({
+    "narrative": narrative_cols,
+    "label": [format_label(col) for col in narrative_cols],
+    "corr_with_log_sales_per_capita": [
+        population_scaled_sales[f"{col}_rate"].corr(
+            population_scaled_sales["log_value_per_capita"]
+        )
+        for col in narrative_cols
+    ],
+}).sort_values("corr_with_log_sales_per_capita", ascending=False)
+
+if "corr_table" in globals():
+    population_corr_comparison = corr_table[
+        ["narrative", "label", "corr_with_log_total_value"]
+    ].merge(
+        population_scaled_corr_table,
+        on=["narrative", "label"],
+        how="inner",
+    )
+    display(
+        population_corr_comparison.sort_values(
+            "corr_with_log_sales_per_capita", ascending=False
+        )
+    )
+else:
+    display(population_scaled_corr_table)
+
+plot_population_corr = population_scaled_corr_table.sort_values(
+    "corr_with_log_sales_per_capita"
+)
+colors = [
+    "#4C78A8" if value >= 0 else "#E45756"
+    for value in plot_population_corr["corr_with_log_sales_per_capita"]
+]
+fig, ax = plt.subplots(figsize=(9, 5))
+ax.barh(
+    plot_population_corr["label"],
+    plot_population_corr["corr_with_log_sales_per_capita"],
+    color=colors,
+)
+ax.axvline(0, color="black", linewidth=1)
+ax.set_title("Correlation Between Narrative Mention Rate and Population-Scaled Sales")
+ax.set_xlabel("Correlation with log(sales EUR per capita)")
+ax.set_ylabel("Narrative")
+plt.tight_layout()
+plt.show()
+
+# %% [markdown]
+# This population-scaled check responds directly to today's discussion and Group B's suggestion. After dividing sales by World Bank population, the analysis shifts from total market size to market intensity. In the current 2018-2020 data, the Netherlands and Belgium become especially visible on a per-capita basis, while larger countries no longer dominate only because they have more people.
+#
+# The correlation chart also changes the narrative screen: fitness/weight, challenge/transition, and health show stronger positive correlations with log sales per capita than they did in the total-value view. This should still be interpreted as exploratory association, not causal evidence, because the country-year sample is small. Key takeaway: population scaling adds a fairer cross-country comparison and helps separate absolute market size from per-person adoption intensity.
+
+# %% [markdown]
+# # NEW OLS REGRESSION SECTION: Unscaled vs Population-Scaled Sales
+#
+# The population-scaled section above added a fairer per-person sales measure, but correlation alone is not enough. The following cells are the new OLS regression cells. This follow-up adds OLS regression and compares two outcomes directly:
+#
+# - unscaled market size: `log_total_value`
+# - population-scaled market intensity: `log_value_per_capita`
+#
+# To make the first comparison fair, both models use the same country-year observations and the same narrative predictors selected by the earlier unscaled best adjusted R-squared model.
+
+# %%
+comparison_rate_cols = (
+    list(adjusted_best_rate_cols)
+    if "adjusted_best_rate_cols" in globals()
+    else ["taste_rate", "challenge_transition_rate", "budget_shopping_rate"]
+)
+comparison_rate_cols = [
+    col for col in comparison_rate_cols
+    if col in population_scaled_sales.columns
+]
+
+ols_scale_comparison_data = population_scaled_sales[
+    [
+        "Country",
+        "Year",
+        "Total Value EUR",
+        "population",
+        "log_total_value",
+        "log_value_per_capita",
+    ] + comparison_rate_cols
+].replace([np.inf, -np.inf], np.nan).dropna().copy()
+
+unscaled_same_predictor_model = fit_ols(
+    ols_scale_comparison_data,
+    comparison_rate_cols,
+    "log_total_value",
+)
+scaled_same_predictor_model = fit_ols(
+    ols_scale_comparison_data,
+    comparison_rate_cols,
+    "log_value_per_capita",
+)
+
+same_predictor_ols_comparison = pd.DataFrame([
+    {
+        "model": "Unscaled OLS",
+        "dependent_variable": "log_total_value",
+        "meaning": "absolute market size",
+        "n_observations": int(unscaled_same_predictor_model.nobs),
+        "n_predictors": len(comparison_rate_cols),
+        "r_squared": unscaled_same_predictor_model.rsquared,
+        "adjusted_r_squared": unscaled_same_predictor_model.rsquared_adj,
+        "aic": unscaled_same_predictor_model.aic,
+        "bic": unscaled_same_predictor_model.bic,
+        "predictors": ", ".join(format_label(col) for col in comparison_rate_cols),
+    },
+    {
+        "model": "Population-scaled OLS",
+        "dependent_variable": "log_value_per_capita",
+        "meaning": "sales intensity per person",
+        "n_observations": int(scaled_same_predictor_model.nobs),
+        "n_predictors": len(comparison_rate_cols),
+        "r_squared": scaled_same_predictor_model.rsquared,
+        "adjusted_r_squared": scaled_same_predictor_model.rsquared_adj,
+        "aic": scaled_same_predictor_model.aic,
+        "bic": scaled_same_predictor_model.bic,
+        "predictors": ", ".join(format_label(col) for col in comparison_rate_cols),
+    },
+])
+
+display(same_predictor_ols_comparison)
+
+print("Unscaled OLS: same predictors, outcome = log_total_value")
+print(unscaled_same_predictor_model.summary())
+print("\nPopulation-scaled OLS: same predictors, outcome = log_value_per_capita")
+print(scaled_same_predictor_model.summary())
+
+# %%
+unscaled_same_predictor_coefficients = create_ols_coefficient_table(
+    unscaled_same_predictor_model,
+    comparison_rate_cols,
+    scale=0.10,
+).rename(columns={
+    "coefficient": "unscaled_coefficient_per_10pp",
+    "p_value": "unscaled_p_value",
+    "conf_low": "unscaled_conf_low_per_10pp",
+    "conf_high": "unscaled_conf_high_per_10pp",
+})
+
+scaled_same_predictor_coefficients = create_ols_coefficient_table(
+    scaled_same_predictor_model,
+    comparison_rate_cols,
+    scale=0.10,
+).rename(columns={
+    "coefficient": "scaled_coefficient_per_10pp",
+    "p_value": "scaled_p_value",
+    "conf_low": "scaled_conf_low_per_10pp",
+    "conf_high": "scaled_conf_high_per_10pp",
+})
+
+same_predictor_coefficient_comparison = (
+    unscaled_same_predictor_coefficients[
+        [
+            "variable",
+            "label",
+            "unscaled_coefficient_per_10pp",
+            "unscaled_p_value",
+            "unscaled_conf_low_per_10pp",
+            "unscaled_conf_high_per_10pp",
+        ]
+    ]
+    .merge(
+        scaled_same_predictor_coefficients[
+            [
+                "variable",
+                "scaled_coefficient_per_10pp",
+                "scaled_p_value",
+                "scaled_conf_low_per_10pp",
+                "scaled_conf_high_per_10pp",
+            ]
+        ],
+        on="variable",
+        how="inner",
+    )
+)
+
+same_predictor_coefficient_comparison["coefficient_change_after_scaling"] = (
+    same_predictor_coefficient_comparison["scaled_coefficient_per_10pp"]
+    - same_predictor_coefficient_comparison["unscaled_coefficient_per_10pp"]
+)
+
+display(same_predictor_coefficient_comparison.sort_values(
+    "scaled_coefficient_per_10pp",
+    ascending=False,
+))
+
+plot_coef_compare = same_predictor_coefficient_comparison.sort_values(
+    "scaled_coefficient_per_10pp"
+)
+y_positions = np.arange(len(plot_coef_compare))
+bar_height = 0.36
+
+fig, ax = plt.subplots(figsize=(9, 5))
+ax.barh(
+    y_positions - bar_height / 2,
+    plot_coef_compare["unscaled_coefficient_per_10pp"],
+    height=bar_height,
+    label="Unscaled: log total sales",
+    color="#4C78A8",
+)
+ax.barh(
+    y_positions + bar_height / 2,
+    plot_coef_compare["scaled_coefficient_per_10pp"],
+    height=bar_height,
+    label="Scaled: log sales per capita",
+    color="#54A24B",
+)
+ax.axvline(0, color="black", linewidth=1)
+ax.set_yticks(y_positions)
+ax.set_yticklabels(plot_coef_compare["label"])
+ax.set_xlabel("OLS coefficient per 10 pp higher mention rate")
+ax.set_title("Same Predictors: Unscaled vs Population-Scaled OLS")
+ax.legend()
+plt.tight_layout()
+plt.show()
+
+# %%
+scaled_regression_data = population_scaled_sales[
+    [
+        "Country",
+        "Year",
+        "Total Value EUR",
+        "population",
+        "log_value_per_capita",
+    ] + ols_cols
+].replace([np.inf, -np.inf], np.nan).dropna().copy()
+
+scaled_ranked_models, scaled_best_rate_cols, scaled_best_ols_model = run_theme_only_ols_search(
+    scaled_regression_data,
+    ols_cols,
+    fit_ols,
+    y_col="log_value_per_capita",
+)
+
+display(scaled_ranked_models.drop(columns="rate_cols").head(20))
+display(
+    summarize_ols_choice(
+        scaled_best_ols_model,
+        scaled_best_rate_cols,
+        model_name="Highest adjusted R-squared population-scaled OLS",
+    )
+)
+
+scaled_best_ols_coefficients = create_ols_coefficient_table(
+    scaled_best_ols_model,
+    scaled_best_rate_cols,
+    scale=0.10,
+).rename(columns={
+    "coefficient": "coefficient_per_10pp",
+    "conf_low": "conf_low_per_10pp",
+    "conf_high": "conf_high_per_10pp",
+})
+display(scaled_best_ols_coefficients.sort_values(
+    "coefficient_per_10pp",
+    ascending=False,
+))
+
+best_model_scale_comparison = pd.DataFrame([
+    {
+        "model": "Original unscaled best OLS",
+        "dependent_variable": "log_total_value",
+        "meaning": "absolute market size",
+        "adjusted_r_squared": adjusted_best_ols_model.rsquared_adj,
+        "r_squared": adjusted_best_ols_model.rsquared,
+        "selected_themes": ", ".join(format_label(col) for col in adjusted_best_rate_cols),
+    },
+    {
+        "model": "Population-scaled best OLS",
+        "dependent_variable": "log_value_per_capita",
+        "meaning": "sales intensity per person",
+        "adjusted_r_squared": scaled_best_ols_model.rsquared_adj,
+        "r_squared": scaled_best_ols_model.rsquared,
+        "selected_themes": ", ".join(format_label(col) for col in scaled_best_rate_cols),
+    },
+])
+display(best_model_scale_comparison)
+
+print("Highest adjusted R-squared population-scaled OLS summary")
+print(scaled_best_ols_model.summary())
+
+# %%
+plot_ols_coefficients(
+    scaled_best_ols_coefficients,
+    "Highest Adjusted R-Squared Population-Scaled OLS",
+    "#54A24B",
+)
+plt.show()
+
+# %% [markdown]
+# ## Visible OLS Regression Result Summary
+#
+# This is the new OLS regression block added after the population-scaling feedback section. The code cells immediately above/below this note run the actual `statsmodels` OLS models and print the full regression summaries. This table is included so the new OLS results are visible even before re-running the notebook.
+#
+# ### Same Predictors, Different Outcome
+#
+# Both models use the same predictors selected by the original unscaled best model: `taste_rate`, `challenge_transition_rate`, and `budget_shopping_rate`.
+#
+# | OLS model | Outcome | Meaning | N | R-squared | Adjusted R-squared |
+# |---|---|---|---:|---:|---:|
+# | Unscaled OLS | `log_total_value` | Absolute market size | 30 | 0.410 | 0.342 |
+# | Population-scaled OLS | `log_value_per_capita` | Sales intensity per person | 30 | 0.149 | 0.051 |
+#
+# | Predictor | Unscaled coefficient per 10pp | Population-scaled coefficient per 10pp | Interpretation of change |
+# |---|---:|---:|---|
+# | Taste | 0.952 | 0.329 | The association weakens after population scaling, suggesting part of the unscaled relationship reflects larger markets. |
+# | Challenge Transition | 1.163 | 0.973 | The association remains positive after scaling, so it is still relevant for per-person market intensity. |
+# | Budget Shopping | 1.760 | 0.394 | The association becomes much smaller after scaling, suggesting the original relationship is more tied to absolute market size. |
+#
+# ### Best Population-Scaled OLS
+#
+# When the dependent variable changes to `log_value_per_capita`, the highest adjusted R-squared model selects: `environment_rate`, `recipe_cooking_rate`, `fitness_weight_rate`, and `budget_shopping_rate`.
+#
+# | Population-scaled best OLS | R-squared | Adjusted R-squared |
+# |---|---:|---:|
+# | `log_value_per_capita` model | 0.302 | 0.191 |
+#
+# | Selected predictor | Coefficient per 10pp |
+# |---|---:|
+# | Environment | 0.982 |
+# | Recipe Cooking | 0.249 |
+# | Fitness Weight | 1.296 |
+# | Budget Shopping | 1.142 |
+#
+# Key takeaway: the unscaled OLS is about absolute market opportunity, while the population-scaled OLS is about per-person adoption intensity. Scaling changes the interpretation and also changes which themes look strongest.
+
+# %% [markdown]
+# This OLS comparison separates two different questions. The unscaled model asks which YouTube narratives are associated with larger total markets. The population-scaled model asks which narratives are associated with stronger per-person adoption intensity after accounting for country population size.
+#
+# The same-predictor comparison is the most direct before/after scaling check because the rows and predictors are held constant. If a coefficient becomes smaller after scaling, part of the original relationship was likely connected to country size. If a coefficient stays positive or becomes stronger, that narrative is more closely related to per-capita market intensity, not only to large-population markets.
+#
+# The best-model comparison then shows whether the themes selected by adjusted R-squared change when the dependent variable changes from total sales to sales per capita. Key takeaway: population scaling does not replace the original OLS; it adds a second interpretation layer. The unscaled model is about absolute opportunity size, while the scaled model is about adoption intensity and fairer cross-country comparison.

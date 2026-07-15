@@ -2,7 +2,7 @@
 
 This project examines how plant-based food markets and YouTube narratives developed across selected European countries from 2018 to 2020. It combines country-year-product sales data with YouTube video metadata and title/description-based narrative coding to compare market size, product-category composition, narrative prevalence, and the relationship between online narratives and plant-based food sales.
 
-The current analysis focuses on `Value EUR` as the main sales indicator because sales value and sales volume are strongly correlated in the cleaned sales dataset.
+The current analysis focuses on `Value EUR` as the main sales indicator because sales value and sales volume are strongly correlated in the cleaned sales dataset. Following post-presentation discussion and Group B's feedback, the final notebook also adds a population-scaled sales check using World Bank population data, so total market size can be compared with per-person market intensity.
 
 ## Final presentation
 https://youtu.be/f_vWz5yEDJ0
@@ -33,6 +33,7 @@ This milestone table follows the course project template and records how the pro
 | M3 | 6.10 | Integrated sales and YouTube narrative analysis in the group notebook; refined research questions and interpretation of key figures | Completed |
 | M4 | 6.24 | Updated the YouTube workflow to use the cleaned aspect-sentiment dataset directly; updated title/description-based narrative coding; updated notebook analysis, figures, interpretations, and README | Completed |
 | Final | 2026/07/01 | Final notebook completed; YouTube video completed; presentation materials submitted; cleaned project repository prepared for submission | Completed |
+| Post-presentation feedback | 2026/07/15 | Added Group B population-scaling adjustment using World Bank population data; added OLS comparison between unscaled log total sales and population-scaled log sales per capita | Completed |
 
 ## Current Analysis Workflow
 
@@ -44,7 +45,7 @@ The matching Python percent-format script is:
 
 - `notebooks/Group I_Final.py`
 
-The notebook is organized into two main parts:
+The notebook is organized into two main parts plus one post-presentation feedback extension:
 
 1. Sales analysis
    - Load the cleaned plant-based food sales dataset.
@@ -62,6 +63,12 @@ The notebook is organized into two main parts:
    - Estimate exploratory OLS regressions between narrative mention rates and log total sales value.
    - Add markdown interpretations and key takeaways for each generated figure.
 
+3. Population-scaled feedback extension
+   - Pull country-year population data from the World Bank API using WDI indicator `SP.POP.TOTL`.
+   - Scale country-year sales by population to create sales per capita and sales per 100,000 people.
+   - Compare narrative correlations for unscaled log total sales and population-scaled log sales per capita.
+   - Estimate OLS models for both outcomes and compare R-squared, adjusted R-squared, selected predictors, and coefficients.
+
 The YouTube narrative analysis now uses direct 0/1 theme columns coded from video titles and descriptions.
 
 ## Data Sources
@@ -73,6 +80,7 @@ The YouTube narrative analysis now uses direct 0/1 theme columns coded from vide
 | Cleaned plant-based sales data | `data/Clean/plant_based_food_sales_data.csv` | Plant-based food sales data by country, year, and product group. Key variables include `Country`, `Year`, `Product Group`, `Value EUR`, and `Volume kg/l`. |
 | YouTube Data API | https://developers.google.com/youtube/v3 | Used earlier in the project to collect YouTube video metadata such as title, description, upload date, channel information, views, likes, and comments. The current notebook does not re-run the API extraction. |
 | European plant-based foods sales data | https://zenodo.org/records/6411841 | Source for the plant-based food panel sales dataset. |
+| World Bank population data | https://api.worldbank.org/v2/country/AUT;BEL;DNK;ESP;FRA;GBR;ITA;NLD;POL;ROU/indicator/SP.POP.TOTL?format=json&date=2018:2020&per_page=1000 | World Development Indicators annual population series `SP.POP.TOTL`, used to scale sales by country-year population after Group B's feedback. |
 
 ## YouTube Narrative Variables
 
@@ -94,7 +102,7 @@ The cleaned YouTube dataset contains one binary column for each narrative theme.
 
 ## Geographic and Time Scope
 
-The project covers 9 European countries:
+The matched sales-and-YouTube analysis covers 10 European countries:
 
 - Austria
 - Belgium
@@ -102,15 +110,16 @@ The project covers 9 European countries:
 - France
 - Italy
 - Netherlands
+- Poland
 - Romania
 - Spain
 - United Kingdom
 
-The original cleaned YouTube narrative file covers 11 European countries. Poland and Germany are not listed in the final geographic scope because the final sales-narrative analysis requires country-year observations to be matched with usable non-zero `Value EUR` sales data for 2018-2020. These two countries were excluded at the merge stage due to missing or unusable matching sales observations, not because the YouTube narrative data were absent. Therefore, the final results should be read as a 9-country matched sales-and-YouTube sample rather than the full 11-country YouTube collection.
+The original cleaned YouTube narrative file covers 11 European countries. Germany is not listed in the final matched geographic scope because the final sales-narrative analysis requires country-year observations to be matched with usable non-zero `Value EUR` sales data for 2018-2020. Germany is excluded at the merge stage due to missing or unusable matching sales observations, not because the YouTube narrative data were absent. Therefore, the final results should be read as a 10-country matched sales-and-YouTube sample rather than the full 11-country YouTube collection.
 
 The YouTube file contains videos from 2017-2020. The main notebook filters to 2018-2020 because the cleaned sales dataset covers 2018-2020.
 
-For the sales relationship analysis, YouTube narrative measures are aggregated to the country-year level and merged with country-year total sales value. If a country-year has no usable non-zero `Value EUR`, it is listed in the notebook as unmatched and excluded from the sales relationship and OLS analysis.
+For the sales relationship analysis, YouTube narrative measures are aggregated to the country-year level and merged with country-year total sales value. If a country-year has no usable non-zero `Value EUR`, it is listed in the notebook as unmatched and excluded from the sales relationship and OLS analysis. The population-scaled extension uses the same matched country-year sales-and-YouTube sample and then merges World Bank population data for those countries and years.
 
 ## Key Files
 
@@ -138,6 +147,7 @@ src/
 2. Run the notebook from top to bottom.
 3. The notebook reads cleaned datasets from `data/Clean`.
 4. The YouTube API extraction is not required for the current analysis.
+5. The population-scaled section calls the World Bank API, so internet access is needed when running those cells.
 
 Recommended Python packages:
 
@@ -152,8 +162,10 @@ Recommended Python packages:
 - The YouTube narrative workflow uses the cleaned aspect-sentiment CSV directly.
 - The current notebook analyzes eleven title/description-coded narrative themes as direct 0/1 mention variables.
 - The notebook emphasizes descriptive patterns and exploratory OLS regressions at the country-year level. Regression coefficients should be interpreted as associations, not causal effects.
+- The Group B feedback extension compares unscaled `log_total_value` with population-scaled `log_value_per_capita`, so the README and notebook now distinguish absolute market size from per-person adoption intensity.
 
 ## References
 
 - YouTube Data API Documentation: https://developers.google.com/youtube/v3
 - European plant-based foods sales data: https://zenodo.org/records/6411841
+- World Bank World Development Indicators population series `SP.POP.TOTL`: https://api.worldbank.org/v2/country/AUT;BEL;DNK;ESP;FRA;GBR;ITA;NLD;POL;ROU/indicator/SP.POP.TOTL?format=json&date=2018:2020&per_page=1000
